@@ -49,5 +49,8 @@ public class Camera implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date dataRimozione;
 
+    @Column(name = "MOTIVAZIONE_RIMOZIONE")
+    private String motivazioneRimozione;
+
 
 }

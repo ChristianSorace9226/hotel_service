@@ -2,16 +2,14 @@ package it.nesea.albergo.hotel_service.controller;
 
 import it.nesea.albergo.hotel_service.dto.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
+import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.service.CameraService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/hotel")
@@ -23,6 +21,11 @@ public class CameraController {
     @PostMapping(path = "/aggiungi-camera")
     public ResponseEntity<CustomResponse<CameraDTO>> aggiungiCamera(@Valid @RequestBody CreaCameraRequest request) {
         return ResponseEntity.ok(CustomResponse.success(cameraService.aggiungiCamera(request)));
+    }
+
+    @DeleteMapping(path = "/rimuovi-camera")
+    public ResponseEntity<CustomResponse<Void>> rimuoviCamera(@Valid @RequestBody EliminaCameraRequest request) {
+        return ResponseEntity.ok(CustomResponse.success(cameraService.eliminaCamera(request)));
     }
 
 }
