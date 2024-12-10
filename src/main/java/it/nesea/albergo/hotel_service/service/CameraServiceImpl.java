@@ -1,6 +1,7 @@
 package it.nesea.albergo.hotel_service.service;
 
 import it.nesea.albergo.hotel_service.dto.CameraDTO;
+import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.exception.NotFoundException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Data
@@ -57,5 +59,47 @@ public class CameraServiceImpl implements CameraService {
             throw new NotFoundException("Camera non trovata");
         }
         return null;
+    }
+
+    @Override
+    public OccupazioneDTO calcolaOccupazioneHotel() {
+        List<Camera> camere = cameraRepository.findAll();
+
+        int totaleCamere = camere.size();
+        int camereOccupate = 0;
+        int postiLiberoTotali = 0;
+        int postiOccupatiTotali = 0;
+
+        for (Camera camera : camere) {
+            // Controllo se la camera è occupata
+            if ("occupato".equalsIgnoreCase(camera.getStato())) {
+                camereOccupate++;
+                // Considero i posti occupati dalla camera
+                postiOccupatiTotali += camera.getCapacita();
+            } else if ("disponibile".equalsIgnoreCase(camera.getStato())) {
+                // Considero i posti liberi dalla camera disponibile
+                postiLiberoTotali += camera.getCapacita();
+            }
+        }
+
+        double percentualeOccupazione = calcolaPercentualeOccupazione(totaleCamere, camereOccupate);
+
+        OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
+        occupazioneDTO.setTotaleCamere(totaleCamere);
+        occupazioneDTO.setCamereOccupate(camereOccupate);
+        occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
+        occupazioneDTO.setPostiLiberoTotali(postiLiberoTotali);
+        occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
+
+        log.info("Calcolato stato di occupazione per l'hotel: {}", occupazioneDTO);
+
+        return occupazioneDTO;
+    }
+
+    private double calcolaPercentualeOccupazione(int totaleCamere, int camereOccupate) {
+        if (totaleCamere == 0) {
+            return 0.0;
+        }
+        return camereOccupate * 100.0 / totaleCamere;
     }
 }

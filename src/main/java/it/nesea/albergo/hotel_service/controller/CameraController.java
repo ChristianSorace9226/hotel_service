@@ -1,6 +1,7 @@
 package it.nesea.albergo.hotel_service.controller;
 
 import it.nesea.albergo.hotel_service.dto.CameraDTO;
+import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.CustomResponse;
@@ -27,5 +28,11 @@ public class CameraController {
     public ResponseEntity<CustomResponse<Void>> rimuoviCamera(@Valid @RequestBody EliminaCameraRequest request) {
         return ResponseEntity.ok(CustomResponse.success(cameraService.eliminaCamera(request)));
     }
+
+    @GetMapping(path = "/occupazione-hotel")
+    public ResponseEntity<CustomResponse<OccupazioneDTO>> occupazioneHotel() {
+        return ResponseEntity.ok(CustomResponse.success(cameraService.calcolaOccupazioneHotel()));
+    }
+
 
 }
