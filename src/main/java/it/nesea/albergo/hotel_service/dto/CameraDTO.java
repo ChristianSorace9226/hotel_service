@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -45,10 +46,10 @@ public class CameraDTO implements Serializable {
     BigDecimal prezzoPerNotte;
 
     @NotNull(message = "data inizio disponibilita non può essere null")
-    Date dataInizioDisponibilita;
+    LocalDate dataInizioDisponibilita;
 
-    Date dataFineDisponibilita;
+    LocalDate dataFineDisponibilita;
 
-    Date dataRimozione;
+    LocalDate dataRimozione;
 
 }

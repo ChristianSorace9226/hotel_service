@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "CAMERA", schema = "HOTEL_SERVICE")
@@ -39,15 +39,15 @@ public class Camera implements Serializable {
 
     @Column(name = "DATA_INIZIO_DISPONIBILITA")
     @Temporal(TemporalType.DATE)
-    private Date dataInizioDisponibilita;
+    private LocalDate dataInizioDisponibilita;
 
     @Column(name = "DATA_FINE_DISPONIBILITA")
     @Temporal(TemporalType.DATE)
-    private Date dataFineDisponibilita;
+    private LocalDate dataFineDisponibilita;
 
     @Column(name = "DATA_RIMOZIONE")
     @Temporal(TemporalType.DATE)
-    private Date dataRimozione;
+    private LocalDate dataRimozione;
 
     @Column(name = "MOTIVAZIONE_RIMOZIONE")
     private String motivazioneRimozione;

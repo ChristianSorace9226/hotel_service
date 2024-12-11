@@ -25,6 +25,5 @@ public class EliminaCameraRequest implements Serializable {
     @NotNull(message = "il tipo di rimozione non può essere null")
     Boolean rimozioneLogica;
 
-    @NotBlank(message = "deve essere specificata la motivazione per la rimozione")
     String motivazione;
 }

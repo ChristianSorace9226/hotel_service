@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -41,5 +42,5 @@ public class CreaCameraRequest implements Serializable {
     BigDecimal prezzoPerNotte;
 
     @NotNull(message = "data inizio disponibilita non può essere null")
-    Date dataInizioDisponibilita;
+    LocalDate dataInizioDisponibilita;
 }
