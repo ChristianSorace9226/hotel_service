@@ -37,7 +37,7 @@ public class OccupazioneDTO implements Serializable {
 
     @NotNull(message = "Il numero di posti liberi totali non può essere null")
     @Positive(message = "Il numero di posti liberi deve essere positivo")
-    int postiLiberoTotali;
+    int postiLiberiTotali;
 
     @NotNull(message = "Il numero di posti occupati totali non può essere null")
     @Positive(message = "Il numero di posti occupati deve essere positivo")
