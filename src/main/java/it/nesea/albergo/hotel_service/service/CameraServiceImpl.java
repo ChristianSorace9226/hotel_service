@@ -95,10 +95,12 @@ public class CameraServiceImpl implements CameraService {
 
         int totaleCamere = camere.size();
         int camereOccupate = 0;
-        int postiLiberoTotali = 0;
+        int postiLiberiTotali = 0;
         int postiOccupatiTotali = 0;
+        int postiTotali = 0;
 
         for (Camera camera : camere) {
+            postiTotali += camera.getCapacita();
             // Controllo se la camera è occupata
             if ("occupato".equalsIgnoreCase(camera.getStato())) {
                 camereOccupate++;
@@ -106,17 +108,17 @@ public class CameraServiceImpl implements CameraService {
                 postiOccupatiTotali += camera.getCapacita();
             } else if ("disponibile".equalsIgnoreCase(camera.getStato())) {
                 // Considero i posti liberi dalla camera disponibile
-                postiLiberoTotali += camera.getCapacita();
+                postiLiberiTotali += camera.getCapacita();
             }
         }
 
-        double percentualeOccupazione = calcolaPercentualeOccupazione(totaleCamere, camereOccupate);
+        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
         occupazioneDTO.setTotaleCamere(totaleCamere);
         occupazioneDTO.setCamereOccupate(camereOccupate);
         occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
-        occupazioneDTO.setPostiLiberoTotali(postiLiberoTotali);
+        occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
         occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
 
         log.info("Calcolato stato di occupazione per l'hotel: {}", occupazioneDTO);
@@ -124,10 +126,10 @@ public class CameraServiceImpl implements CameraService {
         return occupazioneDTO;
     }
 
-    private double calcolaPercentualeOccupazione(int totaleCamere, int camereOccupate) {
-        if (totaleCamere == 0) {
+    private double calcolaPercentualeOccupazione(int postiTotali, int postiOccupatiTotali) {
+        if (postiTotali == 0) {
             return 0.0;
         }
-        return camereOccupate * 100.0 / totaleCamere;
+        return postiOccupatiTotali * 100.0 / postiTotali;
     }
 }
