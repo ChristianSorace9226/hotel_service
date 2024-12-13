@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -93,13 +94,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponse.error(errors));
     }
 
-    // Gestisce eccezioni generiche
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<CustomResponse> handleGeneralException(Exception ex) {
-        log.error("Errore generico: " + ex.getMessage());
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<CustomResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        log.error("Metodo HTTP non supportato: " + ex.getMessage());
         List<String> errors = new ArrayList<>();
-        errors.add("Si è verificato un errore imprevisto, riprova più tardi.");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponse.error(errors));
+        errors.add("Metodo HTTP non supportato.");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(CustomResponse.error(errors));
     }
 
     // Gestisce l'eccezione personalizzata BadRequestException
@@ -111,11 +111,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponse.error(errors));
     }
 
-
-    // Metodo per creare una risposta di errore
-    private CustomResponse getError(Exception ex) {
-        List<String> errors = new ArrayList<>(1);
-        errors.add(ex.getMessage());
-        return CustomResponse.error(errors);
-    }
 }
