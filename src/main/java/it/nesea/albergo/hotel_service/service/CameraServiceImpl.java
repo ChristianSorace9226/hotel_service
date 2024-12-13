@@ -27,6 +27,7 @@ import java.util.List;
 public class CameraServiceImpl implements CameraService {
     private final CameraRepository cameraRepository;
     private final CameraMapper cameraMapper;
+    private final UtilService utilService;
 
 
     @Override
@@ -45,6 +46,10 @@ public class CameraServiceImpl implements CameraService {
         if (request.getDataInizioDisponibilita().isBefore(LocalDate.now())) {
             log.warn("Tentativo di creare una camera con una data di inizio disponibilità antecedente alla data odierna: {}", request.getDataInizioDisponibilita());
             throw new BadRequestException("La data di inizio disponibilità non può essere antecedente alla data odierna");
+        }
+        if (utilService.getStatoCameraEntity(request.getIdStato()) == null){
+            log.warn("Stato camera non trovato per la camera con numero {}: {}", request.getNumeroCamera(), request.getIdStato());
+            throw new NotFoundException("Stato camera non valido");
         }
         if (request.getDataInizioDisponibilita().isEqual(LocalDate.now())) {
             LocalTime oraAttuale = LocalTime.now();

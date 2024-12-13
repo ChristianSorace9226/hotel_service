@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CustomResponse> handleNotFoundException(NotFoundException ex) {
         log.error("Errore: " + ex.getMessage());
         List<String> errors = new ArrayList<>();
-        errors.add("Risorsa non trovata. Dettagli: " + ex.getMessage());
+        errors.add(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponse.error(errors));
     }
 
