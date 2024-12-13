@@ -2,6 +2,7 @@ package it.nesea.albergo.hotel_service.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "CAMERA", schema = "HOTEL_SERVICE")
 @Data
+@DynamicInsert
 public class Camera implements Serializable {
 
     @Serial
@@ -33,6 +35,9 @@ public class Camera implements Serializable {
 
     @Column(name = "CAPACITA", nullable = false, precision = 2)
     private Integer capacita;
+
+    @Column(name = "NUMERO_ALLOGGIATI", nullable = false)
+    private Integer numeroAlloggiati;
 
     @Column(name = "PREZZO_PER_NOTTE", nullable = false, precision = 10, scale = 2)
     private BigDecimal prezzoPerNotte;

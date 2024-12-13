@@ -4,6 +4,7 @@ import it.nesea.albergo.hotel_service.dto.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
+import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
 import it.nesea.albergo.hotel_service.exception.BadRequestException;
 import it.nesea.albergo.hotel_service.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
@@ -18,7 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.management.InstanceAlreadyExistsException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Data
@@ -47,7 +51,7 @@ public class CameraServiceImpl implements CameraService {
             log.warn("Tentativo di creare una camera con una data di inizio disponibilità antecedente alla data odierna: {}", request.getDataInizioDisponibilita());
             throw new BadRequestException("La data di inizio disponibilità non può essere antecedente alla data odierna");
         }
-        if (utilService.getStatoCameraEntity(request.getIdStato()) == null){
+        if (utilService.getStatoCameraEntity(request.getIdStato()) == null) {
             log.warn("Stato camera non trovato per la camera con numero {}: {}", request.getNumeroCamera(), request.getIdStato());
             throw new NotFoundException("Stato camera non valido");
         }
@@ -61,6 +65,7 @@ public class CameraServiceImpl implements CameraService {
             }
         }
         camera = cameraMapper.toCameraEntityFromCreaCameraRequest(request);
+        camera.setNumeroAlloggiati(0);
         cameraRepository.save(camera);
         log.info("Oggetto camera salvato sul database: [{}]", camera);
 
@@ -132,6 +137,40 @@ public class CameraServiceImpl implements CameraService {
 //
 //        return occupazioneDTO;
         return null;
+    }
+
+    public DisponibilitaDto getDisponibilita() {
+        Integer disponibilitaTotale = 0;
+        Map<String, Map<Boolean, Integer>> cameraPostiDisponibili = new HashMap<>();
+        Integer disponibilitaReale = 0;
+
+        List<Camera> camere = cameraRepository.findAll();
+        for (Camera camera : camere) {
+            disponibilitaTotale += camera.getCapacita();
+            Map<Boolean, Integer> disponibilita = new HashMap<>();
+            disponibilita.put(true, camera.getCapacita() - camera.getNumeroAlloggiati());
+            disponibilitaReale += camera.getCapacita() - camera.getNumeroAlloggiati();
+            if (camera.getIdStato() == 2) {
+                disponibilita.put(false, camera.getNumeroAlloggiati());
+            }
+            cameraPostiDisponibili.put(camera.getNumeroCamera(), disponibilita);
+        }
+        DisponibilitaDto disponibilitaDto = new DisponibilitaDto();
+        disponibilitaDto.setDisponibilitaTotale(disponibilitaTotale);
+        disponibilitaDto.setCameraPostiDisponibili(cameraPostiDisponibili);
+        disponibilitaDto.setDisponibilitaReale(disponibilitaReale);
+        return disponibilitaDto;
+    }
+
+    @Override
+    public List<CameraDTO> getAllCamere() {
+        log.info("Richiesta ricevuta per ottenere tutte le camere");
+        List<Camera> camere = cameraRepository.findAll();
+        List<CameraDTO> camereDto = new ArrayList<>();
+        for (Camera camera : camere) {
+            camereDto.add(cameraMapper.toCameraDTOFromCameraEntity(camera));
+        }
+        return camereDto;
     }
 
     private double calcolaPercentualeOccupazione(int totaleCamere, int camereOccupate) {
