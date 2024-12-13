@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.management.InstanceAlreadyExistsException;
+
 @RestController
 @RequestMapping(path = "/hotel")
 @AllArgsConstructor
@@ -20,7 +22,7 @@ public class CameraController {
     private final CameraService cameraService;
 
     @PostMapping(path = "/aggiungi-camera")
-    public ResponseEntity<CustomResponse<CameraDTO>> aggiungiCamera(@Valid @RequestBody CreaCameraRequest request) {
+    public ResponseEntity<CustomResponse<CameraDTO>> aggiungiCamera(@Valid @RequestBody CreaCameraRequest request) throws InstanceAlreadyExistsException {
         return ResponseEntity.ok(CustomResponse.success(cameraService.aggiungiCamera(request)));
     }
 

@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
         log.error("Errore nel formato del messaggio: Corpo della richiesta mancante o non valido.");
         List<String> errors = new ArrayList<>();
         errors.add("Richiesta non corretta. Corpo della richiesta mancante o non valido.");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponse.error(errors));
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(CustomResponse.error(errors));
     }
 
     // Gestisce le violazioni generali di integrità dei dati (violazioni di vincoli)
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
             log.warn("Conflitto di unicità: " + message);
             List<String> errors = new ArrayList<>();
             errors.add("Esiste già un ruolo con il nome scelto.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponse.error(errors));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(CustomResponse.error(errors));
         }
 
         // Se non è un errore di duplicato, possiamo restituire un errore generico di integrità dei dati

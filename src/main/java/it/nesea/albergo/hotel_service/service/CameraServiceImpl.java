@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.management.InstanceAlreadyExistsException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -30,12 +31,12 @@ public class CameraServiceImpl implements CameraService {
 
     @Override
     @Transactional
-    public CameraDTO aggiungiCamera(CreaCameraRequest request) {
+    public CameraDTO aggiungiCamera(CreaCameraRequest request) throws InstanceAlreadyExistsException {
         log.info("Richiesta ricevuta per aggiungere una camera: [{}]", request);
         Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
         if (camera != null) {
             log.warn("Tentativo di creare una camera con il numeroCamera già esistente: {}", request.getNumeroCamera());
-            throw new NotFoundException("Numero camera già presente nel db");
+            throw new InstanceAlreadyExistsException("Numero camera già presente nel db");
         }
         if (request.getCapacita() <= 0) {
             log.warn("Tentativo di creare una camera con capacità pari a 0: {}", request.getCapacita());
