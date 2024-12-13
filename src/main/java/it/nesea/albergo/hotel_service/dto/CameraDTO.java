@@ -13,7 +13,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -35,9 +34,8 @@ public class CameraDTO implements Serializable {
     @Size(max = 50)
     String tipo;
 
-    @NotBlank(message = "stato non può essere vuoto")
-    @Size(max = 20)
-    String stato;
+    @NotNull(message = "lo stato della camera deve essere definito")
+    Integer idStato;
 
     @NotNull(message = "capacita non può essere null")
     Integer capacita;
