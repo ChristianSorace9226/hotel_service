@@ -29,15 +29,3 @@ CREATE TABLE IF NOT EXISTS hotel_service.camera (
     motivazione_rimozione VARCHAR(255),
     CONSTRAINT pk_camera PRIMARY KEY(id)
 );
-
--- Rimuovo la sequenza seq_camera_numero se esiste
-DROP SEQUENCE IF EXISTS hotel_service.seq_camera_numero;
-
--- Creazione sequenza per il numero della camera
-CREATE SEQUENCE IF NOT EXISTS hotel_service.seq_camera_numero
-START WITH 1
-INCREMENT BY 1
-MAXVALUE 9999
-NOCACHE
-NOCYCLE;
-

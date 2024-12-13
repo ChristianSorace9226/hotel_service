@@ -31,7 +31,7 @@ public class CameraServiceImpl implements CameraService {
     @Override
     @Transactional
     public CameraDTO aggiungiCamera(CreaCameraRequest request) {
-        log.info("Richiesta ricevuta per aggiungere una camera: {}", request);
+        log.info("Richiesta ricevuta per aggiungere una camera: [{}]", request);
         Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
         if (camera != null) {
             log.warn("Tentativo di creare una camera con il numeroCamera già esistente: {}", request.getNumeroCamera());
@@ -56,7 +56,7 @@ public class CameraServiceImpl implements CameraService {
         }
         camera = cameraMapper.toCameraEntityFromCreaCameraRequest(request);
         cameraRepository.save(camera);
-        log.info("Oggetto camera salvato sul database: {}", camera);
+        log.info("Oggetto camera salvato sul database: [{}]", camera);
 
         return cameraMapper.toCameraDTOFromCameraEntity(camera);
     }
@@ -65,7 +65,7 @@ public class CameraServiceImpl implements CameraService {
     @Override
     @Transactional
     public Void eliminaCamera(EliminaCameraRequest request) {
-        log.info("Richiesta ricevuta per la rimozione della camera: {}", request);
+        log.info("Richiesta ricevuta per la rimozione della camera: [{}]", request);
         Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
         if (camera == null) {
             log.warn("Camera con numero {} non trovata per la rimozione", request.getNumeroCamera());
@@ -112,7 +112,8 @@ public class CameraServiceImpl implements CameraService {
             }
         }
 
-        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
+//        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
+        double percentualeOccupazione = calcolaPercentualeOccupazione(totaleCamere, camereOccupate);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
         occupazioneDTO.setTotaleCamere(totaleCamere);
@@ -121,15 +122,15 @@ public class CameraServiceImpl implements CameraService {
         occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
         occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
 
-        log.info("Calcolato stato di occupazione per l'hotel: {}", occupazioneDTO);
+        log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
 
         return occupazioneDTO;
     }
 
-    private double calcolaPercentualeOccupazione(int postiTotali, int postiOccupatiTotali) {
-        if (postiTotali == 0) {
+    private double calcolaPercentualeOccupazione(int totaleCamere, int camereOccupate) {
+        if (totaleCamere == 0) {
             return 0.0;
         }
-        return postiOccupatiTotali * 100.0 / postiTotali;
+        return camereOccupate * 100.0 / totaleCamere;
     }
 }

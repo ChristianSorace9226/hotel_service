@@ -34,5 +34,4 @@ public class CameraController {
         return ResponseEntity.ok(CustomResponse.success(cameraService.calcolaOccupazioneHotel()));
     }
 
-
 }
