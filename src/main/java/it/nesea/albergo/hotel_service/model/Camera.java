@@ -28,8 +28,8 @@ public class Camera implements Serializable {
     @Column(name = "TIPO", nullable = false, length = 50)
     private String tipo;
 
-    @Column(name = "STATO", nullable = false, length = 20)
-    private String stato;
+    @Column(name = "ID_STATO", nullable = false)
+    private Integer idStato;
 
     @Column(name = "CAPACITA", nullable = false, precision = 2)
     private Integer capacita;

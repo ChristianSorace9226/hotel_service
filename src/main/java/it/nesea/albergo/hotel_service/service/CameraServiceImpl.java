@@ -72,12 +72,12 @@ public class CameraServiceImpl implements CameraService {
             throw new NotFoundException("Camera non trovata");
         }
         if (request.getRimozioneLogica()) {
-            if (request.getMotivazione() == null || request.getMotivazione().isEmpty()) {
+            if (request.getMotivazione() == null || request.getMotivazione().toLowerCase().trim().isEmpty()) {
                 log.warn("Motivazione mancante per la rimozione logica della camera {}", request.getNumeroCamera());
                 throw new BadRequestException("La motivazione per la rimozione logica è obbligatoria");
             }
             camera.setDataRimozione(LocalDate.now());
-            camera.setMotivazioneRimozione(request.getMotivazione());
+            camera.setMotivazioneRimozione(request.getMotivazione().toLowerCase().trim());
 
             cameraRepository.save(camera);
             log.info("Camera con numero {} rimossa logicamente. Motivazione: {}", request.getNumeroCamera(), request.getMotivazione());
@@ -91,40 +91,41 @@ public class CameraServiceImpl implements CameraService {
 
     @Override
     public OccupazioneDTO calcolaOccupazioneHotel() {
-        List<Camera> camere = cameraRepository.findAll();
-
-        int totaleCamere = camere.size();
-        int camereOccupate = 0;
-        int postiLiberiTotali = 0;
-        int postiOccupatiTotali = 0;
-        int postiTotali = 0;
-
-        for (Camera camera : camere) {
-            postiTotali += camera.getCapacita();
-            // Controllo se la camera è occupata
-            if ("occupato".equalsIgnoreCase(camera.getStato())) {
-                camereOccupate++;
-                // Considero i posti occupati dalla camera
-                postiOccupatiTotali += camera.getCapacita();
-            } else if ("disponibile".equalsIgnoreCase(camera.getStato())) {
-                // Considero i posti liberi dalla camera disponibile
-                postiLiberiTotali += camera.getCapacita();
-            }
-        }
-
-//        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
-        double percentualeOccupazione = calcolaPercentualeOccupazione(totaleCamere, camereOccupate);
-
-        OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
-        occupazioneDTO.setTotaleCamere(totaleCamere);
-        occupazioneDTO.setCamereOccupate(camereOccupate);
-        occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
-        occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
-        occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
-
-        log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
-
-        return occupazioneDTO;
+//        List<Camera> camere = cameraRepository.findAll();
+//
+//        int totaleCamere = camere.size();
+//        int camereOccupate = 0;
+//        int postiLiberiTotali = 0;
+//        int postiOccupatiTotali = 0;
+//        int postiTotali = 0;
+//
+//        for (Camera camera : camere) {
+//            postiTotali += camera.getCapacita();
+//            // Controllo se la camera è occupata
+//            if ("occupato".equalsIgnoreCase(camera.getStato())) {
+//                camereOccupate++;
+//                // Considero i posti occupati dalla camera
+//                postiOccupatiTotali += camera.getCapacita();
+//            } else if ("disponibile".equalsIgnoreCase(camera.getStato())) {
+//                // Considero i posti liberi dalla camera disponibile
+//                postiLiberiTotali += camera.getCapacita();
+//            }
+//        }
+//
+////        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
+//        double percentualeOccupazione = calcolaPercentualeOccupazione(totaleCamere, camereOccupate);
+//
+//        OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
+//        occupazioneDTO.setTotaleCamere(totaleCamere);
+//        occupazioneDTO.setCamereOccupate(camereOccupate);
+//        occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
+//        occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
+//        occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
+//
+//        log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
+//
+//        return occupazioneDTO;
+        return null;
     }
 
     private double calcolaPercentualeOccupazione(int totaleCamere, int camereOccupate) {

@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS hotel_service.stato (
 );
 
 
-
 -- Rimuovo la tabella camera se esiste
 DROP TABLE IF EXISTS hotel_service.camera;
 
