@@ -21,12 +21,9 @@ public class OccupazioneDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 2007514205587848964L;
 
+    int numeroCamere;
+
     BigDecimal percentualeOccupazioneTotale;
 
     List<Map<String, BigDecimal>> percentualeOccupazioneCamera;
-
-    int postiLiberiTotali;
-
-    int postiOccupatiTotali;
-
 }

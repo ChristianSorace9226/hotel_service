@@ -1,12 +1,12 @@
 package it.nesea.albergo.hotel_service.service;
 
+import it.nesea.albergo.common_lib.exception.BadRequestException;
+import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
-import it.nesea.albergo.common_lib.exception.BadRequestException;
-import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
@@ -104,28 +104,19 @@ public class CameraServiceImpl implements CameraService {
 
     @Override
     public OccupazioneDTO calcolaOccupazioneHotel() {
+        log.info("Richiesta ricevuta per il calcolo dell'occupazione del hotel");
         List<Camera> camere = cameraRepository.findAll();
         List<Map<String, BigDecimal>> listaOccupazioneCamere = new ArrayList<>();
         int totaleCamere = camere.size();
         int camereOccupate = 0;
-        int postiLiberiTotali = 0;
-        int postiOccupatiTotali = 0;
-//        int postiTotali = 0;
 
         for (Camera camera : camere) {
-//            postiTotali += camera.getCapacita();
-            if (camera.getDataRimozione() != null){
+            if (camera.getDataRimozione() != null) {
                 continue;
             }
             Map<String, BigDecimal> occupazioneCamera = new HashMap<>();
-            // Controllo se la camera è occupata
             if (camera.getIdStato() == 2) {
                 camereOccupate++;
-                // Considero i posti occupati dalla camera
-                postiOccupatiTotali += camera.getNumeroAlloggiati();
-            } else if (camera.getIdStato() == 1) {
-                // Considero i posti liberi dalla camera disponibile
-                postiLiberiTotali += camera.getCapacita();
             }
             occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()));
             listaOccupazioneCamere.add(occupazioneCamera);
@@ -135,14 +126,14 @@ public class CameraServiceImpl implements CameraService {
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
         occupazioneDTO.setPercentualeOccupazioneTotale(percentualeOccupazione);
+        occupazioneDTO.setNumeroCamere(totaleCamere);
         occupazioneDTO.setPercentualeOccupazioneCamera(listaOccupazioneCamere);
-        occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
-        occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
         log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
         return occupazioneDTO;
     }
 
     public DisponibilitaDto getDisponibilita() {
+        log.info("Richiesta ricevuta per ottenere la disponibilità delle camere");
         Integer disponibilitaTotale = 0;
         Map<String, Map<Boolean, Integer>> cameraPostiDisponibili = new HashMap<>();
         Integer disponibilitaReale = 0;
@@ -151,7 +142,7 @@ public class CameraServiceImpl implements CameraService {
         for (Camera camera : camere) {
             disponibilitaTotale += camera.getCapacita();
             Map<Boolean, Integer> disponibilita = new HashMap<>();
-            if (camera.getDataRimozione() != null){
+            if (camera.getDataRimozione() != null) {
                 disponibilita.put(false, camera.getCapacita());
                 cameraPostiDisponibili.put(camera.getNumeroCamera(), disponibilita);
                 continue;
@@ -167,6 +158,7 @@ public class CameraServiceImpl implements CameraService {
         disponibilitaDto.setDisponibilitaTotale(disponibilitaTotale);
         disponibilitaDto.setCameraPostiDisponibili(cameraPostiDisponibili);
         disponibilitaDto.setDisponibilitaReale(disponibilitaReale);
+        log.info("Calcolato disponibilità delle camere: [{}]", disponibilitaDto);
         return disponibilitaDto;
     }
 
@@ -178,9 +170,9 @@ public class CameraServiceImpl implements CameraService {
         for (Camera camera : camere) {
             camereDto.add(cameraMapper.toCameraDTOFromCameraEntity(camera));
         }
+        log.info("Ottenute tutte le camere: [{}]", camereDto);
         return camereDto;
     }
-
 
 
     private BigDecimal calcolaPercentuale(int totale, int parte) {

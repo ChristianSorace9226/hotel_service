@@ -1,5 +1,6 @@
 package it.nesea.albergo.hotel_service.controller;
 
+import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.service.UtilService;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,8 @@ public class UtilController {
     }
 
     @GetMapping("/get-stati")
-    public ResponseEntity<List<StatoCameraEntity>> getStati() {
-        return ResponseEntity.ok(util.getAllStati());
+    public ResponseEntity<CustomResponse<List<StatoCameraEntity>>> getStati() {
+        return ResponseEntity.ok(CustomResponse.success(util.getAllStati()));
     }
 
 }

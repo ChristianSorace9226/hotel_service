@@ -4,7 +4,7 @@ import it.nesea.albergo.hotel_service.dto.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
-import it.nesea.albergo.hotel_service.dto.response.CustomResponse;
+import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
 import it.nesea.albergo.hotel_service.service.CameraService;
 import jakarta.validation.Valid;
