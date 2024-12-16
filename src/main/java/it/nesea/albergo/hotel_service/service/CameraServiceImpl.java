@@ -2,11 +2,11 @@ package it.nesea.albergo.hotel_service.service;
 
 import it.nesea.albergo.common_lib.exception.BadRequestException;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
-import it.nesea.albergo.hotel_service.dto.CameraDTO;
-import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
-import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
+import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
+import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
+import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
@@ -132,7 +132,7 @@ public class CameraServiceImpl implements CameraService {
         return occupazioneDTO;
     }
 
-    public DisponibilitaDto getDisponibilita() {
+    public DisponibilitaDTO getDisponibilita() {
         log.info("Richiesta ricevuta per ottenere la disponibilità delle camere");
         Integer disponibilitaTotale = 0;
         Map<String, Map<Boolean, Integer>> cameraPostiDisponibili = new HashMap<>();
@@ -154,7 +154,7 @@ public class CameraServiceImpl implements CameraService {
             }
             cameraPostiDisponibili.put(camera.getNumeroCamera(), disponibilita);
         }
-        DisponibilitaDto disponibilitaDto = new DisponibilitaDto();
+        DisponibilitaDTO disponibilitaDto = new DisponibilitaDTO();
         disponibilitaDto.setDisponibilitaTotale(disponibilitaTotale);
         disponibilitaDto.setCameraPostiDisponibili(cameraPostiDisponibili);
         disponibilitaDto.setDisponibilitaReale(disponibilitaReale);

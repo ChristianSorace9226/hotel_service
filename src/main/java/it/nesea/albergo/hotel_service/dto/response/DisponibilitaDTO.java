@@ -11,7 +11,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DisponibilitaDto implements Serializable {
+public class DisponibilitaDTO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -7545937526351697769L;

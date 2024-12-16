@@ -1,11 +1,11 @@
 package it.nesea.albergo.hotel_service.controller;
 
-import it.nesea.albergo.hotel_service.dto.CameraDTO;
-import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
+import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
-import it.nesea.albergo.common_lib.dto.response.CustomResponse;
-import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
+import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
+import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
+import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.service.CameraService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -39,7 +39,7 @@ public class CameraController {
     }
 
     @GetMapping(path = "/get-disponibilita")
-    public ResponseEntity<CustomResponse<DisponibilitaDto>> getDisponibilitaCamere() {
+    public ResponseEntity<CustomResponse<DisponibilitaDTO>> getDisponibilitaCamere() {
         return ResponseEntity.ok(CustomResponse.success(cameraService.getDisponibilita()));
     }
 

@@ -1,4 +1,4 @@
-package it.nesea.albergo.hotel_service.dto;
+package it.nesea.albergo.hotel_service.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

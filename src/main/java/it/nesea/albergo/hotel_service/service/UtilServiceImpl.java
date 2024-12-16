@@ -33,7 +33,7 @@ public class UtilServiceImpl implements UtilService {
         return entityManager.createQuery(query).getResultList();
     }
 
-    public StatoCameraEntity getStatoCameraEntity(Integer idStato){
+    public StatoCameraEntity getStatoCameraEntity(Integer idStato) {
         log.info("Ricevuta richiesta ottenimento stato camera con id: {}", idStato);
         return entityManager.find(StatoCameraEntity.class, idStato);
     }

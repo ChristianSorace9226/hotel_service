@@ -1,4 +1,4 @@
-package it.nesea.albergo.hotel_service.dto;
+package it.nesea.albergo.hotel_service.dto.response;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
