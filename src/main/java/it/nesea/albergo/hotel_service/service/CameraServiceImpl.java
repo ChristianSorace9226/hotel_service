@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.management.InstanceAlreadyExistsException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -104,7 +105,7 @@ public class CameraServiceImpl implements CameraService {
     @Override
     public OccupazioneDTO calcolaOccupazioneHotel() {
         List<Camera> camere = cameraRepository.findAll();
-
+        List<Map<String, BigDecimal>> listaOccupazioneCamere = new ArrayList<>();
         int totaleCamere = camere.size();
         int camereOccupate = 0;
         int postiLiberiTotali = 0;
@@ -113,23 +114,28 @@ public class CameraServiceImpl implements CameraService {
 
         for (Camera camera : camere) {
 //            postiTotali += camera.getCapacita();
+            if (camera.getDataRimozione() != null){
+                continue;
+            }
+            Map<String, BigDecimal> occupazioneCamera = new HashMap<>();
             // Controllo se la camera è occupata
             if (camera.getIdStato() == 2) {
                 camereOccupate++;
                 // Considero i posti occupati dalla camera
-                postiOccupatiTotali += camera.getCapacita();
+                postiOccupatiTotali += camera.getNumeroAlloggiati();
             } else if (camera.getIdStato() == 1) {
                 // Considero i posti liberi dalla camera disponibile
                 postiLiberiTotali += camera.getCapacita();
             }
+            occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()));
+            listaOccupazioneCamere.add(occupazioneCamera);
         }
 //        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
-        double percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate);
+        BigDecimal percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
-        occupazioneDTO.setTotaleCamere(totaleCamere);
-        occupazioneDTO.setCamereOccupate(camereOccupate);
-        occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
+        occupazioneDTO.setPercentualeOccupazioneTotale(percentualeOccupazione);
+        occupazioneDTO.setPercentualeOccupazioneCamera(listaOccupazioneCamere);
         occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
         occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
         log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
@@ -145,6 +151,11 @@ public class CameraServiceImpl implements CameraService {
         for (Camera camera : camere) {
             disponibilitaTotale += camera.getCapacita();
             Map<Boolean, Integer> disponibilita = new HashMap<>();
+            if (camera.getDataRimozione() != null){
+                disponibilita.put(false, camera.getCapacita());
+                cameraPostiDisponibili.put(camera.getNumeroCamera(), disponibilita);
+                continue;
+            }
             disponibilita.put(true, camera.getCapacita() - camera.getNumeroAlloggiati());
             disponibilitaReale += camera.getCapacita() - camera.getNumeroAlloggiati();
             if (camera.getIdStato() == 2) {
@@ -172,11 +183,11 @@ public class CameraServiceImpl implements CameraService {
 
 
 
-    private double calcolaPercentuale(int totale, int parte) {
+    private BigDecimal calcolaPercentuale(int totale, int parte) {
         if (totale == 0) {
-            return 0.0;
+            return BigDecimal.ZERO;
         }
-        return parte * 100.0 / totale;
+        return BigDecimal.valueOf(parte * 100.0 / totale);
     }
 
 }
