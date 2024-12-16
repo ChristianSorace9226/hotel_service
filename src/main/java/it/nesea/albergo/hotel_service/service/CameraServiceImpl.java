@@ -5,8 +5,8 @@ import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
-import it.nesea.albergo.hotel_service.exception.BadRequestException;
-import it.nesea.albergo.hotel_service.exception.NotFoundException;
+import it.nesea.albergo.common_lib.exception.BadRequestException;
+import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
@@ -173,10 +173,12 @@ public class CameraServiceImpl implements CameraService {
         return camereDto;
     }
 
-    private double calcolaPercentualeOccupazione(int totaleCamere, int camereOccupate) {
-        if (totaleCamere == 0) {
+
+
+    private double calcolaPercentuale(int totale, int parte) {
+        if (totale == 0) {
             return 0.0;
         }
-        return camereOccupate * 100.0 / totaleCamere;
+        return parte * 100.0 / totale;
     }
 }
