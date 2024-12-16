@@ -65,6 +65,7 @@ public class CameraServiceImpl implements CameraService {
             }
         }
         camera = cameraMapper.toCameraEntityFromCreaCameraRequest(request);
+        camera.setTipo(request.getTipo().toLowerCase().trim());
         camera.setNumeroAlloggiati(0);
         cameraRepository.save(camera);
         log.info("Oggetto camera salvato sul database: [{}]", camera);
@@ -102,41 +103,37 @@ public class CameraServiceImpl implements CameraService {
 
     @Override
     public OccupazioneDTO calcolaOccupazioneHotel() {
-//        List<Camera> camere = cameraRepository.findAll();
-//
-//        int totaleCamere = camere.size();
-//        int camereOccupate = 0;
-//        int postiLiberiTotali = 0;
-//        int postiOccupatiTotali = 0;
+        List<Camera> camere = cameraRepository.findAll();
+
+        int totaleCamere = camere.size();
+        int camereOccupate = 0;
+        int postiLiberiTotali = 0;
+        int postiOccupatiTotali = 0;
 //        int postiTotali = 0;
-//
-//        for (Camera camera : camere) {
+
+        for (Camera camera : camere) {
 //            postiTotali += camera.getCapacita();
-//            // Controllo se la camera è occupata
-//            if ("occupato".equalsIgnoreCase(camera.getStato())) {
-//                camereOccupate++;
-//                // Considero i posti occupati dalla camera
-//                postiOccupatiTotali += camera.getCapacita();
-//            } else if ("disponibile".equalsIgnoreCase(camera.getStato())) {
-//                // Considero i posti liberi dalla camera disponibile
-//                postiLiberiTotali += camera.getCapacita();
-//            }
-//        }
-//
-////        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
-//        double percentualeOccupazione = calcolaPercentualeOccupazione(totaleCamere, camereOccupate);
-//
-//        OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
-//        occupazioneDTO.setTotaleCamere(totaleCamere);
-//        occupazioneDTO.setCamereOccupate(camereOccupate);
-//        occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
-//        occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
-//        occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
-//
-//        log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
-//
-//        return occupazioneDTO;
-        return null;
+            // Controllo se la camera è occupata
+            if (camera.getIdStato() == 2) {
+                camereOccupate++;
+                // Considero i posti occupati dalla camera
+                postiOccupatiTotali += camera.getCapacita();
+            } else if (camera.getIdStato() == 1) {
+                // Considero i posti liberi dalla camera disponibile
+                postiLiberiTotali += camera.getCapacita();
+            }
+        }
+//        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
+        double percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate);
+
+        OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
+        occupazioneDTO.setTotaleCamere(totaleCamere);
+        occupazioneDTO.setCamereOccupate(camereOccupate);
+        occupazioneDTO.setPercentualeOccupazione(percentualeOccupazione);
+        occupazioneDTO.setPostiLiberiTotali(postiLiberiTotali);
+        occupazioneDTO.setPostiOccupatiTotali(postiOccupatiTotali);
+        log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
+        return occupazioneDTO;
     }
 
     public DisponibilitaDto getDisponibilita() {
@@ -181,4 +178,5 @@ public class CameraServiceImpl implements CameraService {
         }
         return parte * 100.0 / totale;
     }
+
 }
