@@ -10,6 +10,7 @@ import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
+import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.management.InstanceAlreadyExistsException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ import java.util.Map;
 @AllArgsConstructor
 @Slf4j
 public class CameraServiceImpl implements CameraService {
+
+    private final EntityManager entityManager;
     private final CameraRepository cameraRepository;
     private final CameraMapper cameraMapper;
     private final UtilService utilService;
@@ -104,8 +108,8 @@ public class CameraServiceImpl implements CameraService {
 
     @Override
     public OccupazioneDTO calcolaOccupazioneHotel() {
-        log.info("Richiesta ricevuta per il calcolo dell'occupazione del hotel");
         List<Camera> camere = cameraRepository.findAll();
+        log.info("Richiesta ricevuta per il calcolo dell'occupazione del hotel: {}", camere);
         List<Map<String, BigDecimal>> listaOccupazioneCamere = new ArrayList<>();
         int totaleCamere = camere.size();
         int camereOccupate = 0;
@@ -118,17 +122,17 @@ public class CameraServiceImpl implements CameraService {
             if (camera.getIdStato() == 2) {
                 camereOccupate++;
             }
-            occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()));
+            occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
             listaOccupazioneCamere.add(occupazioneCamera);
         }
 //        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
-        BigDecimal percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate);
+        BigDecimal percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate).setScale(2, RoundingMode.HALF_UP);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
         occupazioneDTO.setPercentualeOccupazioneTotale(percentualeOccupazione);
         occupazioneDTO.setNumeroCamere(totaleCamere);
         occupazioneDTO.setPercentualeOccupazioneCamera(listaOccupazioneCamere);
-        log.info("Calcolato stato di occupazione per l'hotel: [{}]", occupazioneDTO);
+        log.info("Calcolato percentuale di occupazione per l'hotel: [{}]", occupazioneDTO);
         return occupazioneDTO;
     }
 
@@ -170,10 +174,9 @@ public class CameraServiceImpl implements CameraService {
         for (Camera camera : camere) {
             camereDto.add(cameraMapper.toCameraDTOFromCameraEntity(camera));
         }
-        log.info("Ottenute tutte le camere: [{}]", camereDto);
+        log.info("Ottenute tutte le camere: {}", camereDto);
         return camereDto;
     }
-
 
     private BigDecimal calcolaPercentuale(int totale, int parte) {
         if (totale == 0) {
