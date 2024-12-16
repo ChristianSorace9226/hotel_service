@@ -5,6 +5,7 @@ import it.nesea.albergo.hotel_service.dto.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.CustomResponse;
+import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDto;
 import it.nesea.albergo.hotel_service.service.CameraService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.InstanceAlreadyExistsException;
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/hotel")
@@ -34,6 +36,16 @@ public class CameraController {
     @GetMapping(path = "/occupazione-hotel")
     public ResponseEntity<CustomResponse<OccupazioneDTO>> occupazioneHotel() {
         return ResponseEntity.ok(CustomResponse.success(cameraService.calcolaOccupazioneHotel()));
+    }
+
+    @GetMapping(path = "/get-disponibilita")
+    public ResponseEntity<CustomResponse<DisponibilitaDto>> getDisponibilitaCamere() {
+        return ResponseEntity.ok(CustomResponse.success(cameraService.getDisponibilita()));
+    }
+
+    @GetMapping(path = "/get-all-camere")
+    public ResponseEntity<CustomResponse<List<CameraDTO>>> getAllCamere() {
+        return ResponseEntity.ok(CustomResponse.success(cameraService.getAllCamere()));
     }
 
 }
