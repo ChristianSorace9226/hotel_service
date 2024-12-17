@@ -26,6 +26,9 @@ public class PrezzoCameraEntity implements Serializable {
     @JoinColumn(name = "ID_TIPO", nullable = false)
     private TipoCameraEntity tipo;
 
+//    todo: scegliere se tenere l'idFasciaEta come join per ogni record
+//     (quindi per ogni persona che può accedere alla stanza creare 3 prezzari (uno per ogni fascia di età))
+
     @Column(name = "PREZZO_TOTALE", nullable = false, precision = 10, scale = 2)
     private BigDecimal prezzoTotale;
 

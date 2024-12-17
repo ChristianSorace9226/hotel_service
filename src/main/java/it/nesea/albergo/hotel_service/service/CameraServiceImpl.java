@@ -11,6 +11,7 @@ import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
 import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
+import it.nesea.albergo.hotel_service.model.FasciaEtaEntity;
 import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
 import jakarta.persistence.EntityManager;
@@ -210,20 +211,20 @@ public class CameraServiceImpl implements CameraService {
             log.warn("Prezzario non trovato per numero occupanti {}", request.getNumeroOccupanti());
             throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
         }
-//        BigDecimal prezzoTotale = prezzoCameraEntity.getPrezzoTotale();
-//        BigDecimal prezzoAPersona = BigDecimal.ZERO;
-//        for (FasciaEta fasciaEtaRequest : request.getEta()) {
-//            FasciaEta fasciaEta = entityManager.find(FasciaEta.class, fasciaEtaRequest);
-//            if (fasciaEta == null) {
-//                log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
-//                throw new NotFoundException("Fascia d'età non trovata per il prezzario");
-//            }
-//            prezzoAPersona = prezzoTotale.divide(BigDecimal.valueOf(request.getNumeroOccupanti())).setScale(2, RoundingMode.HALF_UP);
-//            if (fasciaEta.getSconto() != null){
-//                prezzoAPersona = prezzoAPersona.subtract(prezzoAPersona.multiply(fasciaEta.getSconto()));
-//            }
-//        }
-//          todo : aggiungere classe per gestione fasce età e correggere logica per lo sconto
+        BigDecimal prezzoTotale = prezzoCameraEntity.getPrezzoTotale();
+        BigDecimal prezzoAPersona;
+        for (Integer fasciaEtaRequest : request.getEta()) {
+            FasciaEtaEntity fasciaEta = entityManager.find(FasciaEtaEntity.class, fasciaEtaRequest);
+            if (fasciaEta == null) {
+                log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
+                throw new NotFoundException("Fascia d'età non trovata per il prezzario");
+            }
+            prezzoAPersona = prezzoTotale.divide(BigDecimal.valueOf(request.getNumeroOccupanti())).setScale(2, RoundingMode.HALF_UP);
+            if (fasciaEta.getPercentualeSconto() != null) {
+                prezzoTotale = prezzoTotale.subtract(prezzoAPersona.multiply(fasciaEta.getPercentualeSconto()));
+            }
+        }
+//          todo: testare e (opzionalmente) rivisitare la logica
         PrezzoCameraDTO prezzoCameraDto = cameraMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
         log.info("Ottenuto il prezzario: [{}]", prezzoCameraDto);
         return prezzoCameraDto;
