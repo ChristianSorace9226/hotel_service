@@ -2,7 +2,9 @@ package it.nesea.albergo.hotel_service.mapper;
 
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
+import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.model.Camera;
+import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
 import it.nesea.albergo.hotel_service.service.UtilService;
@@ -30,6 +32,9 @@ public abstract class CameraMapper {
     @Mapping(source = "idStato", target = "stato")
     @Mapping(source = "idTipo", target = "tipo")
     public abstract Camera toCameraEntityFromCreaCameraRequest(CreaCameraRequest request);
+
+    @Mapping(source = "tipo", target = "idTipo")
+    public abstract PrezzoCameraDTO toPrezzoCameraDTOFromPrezzoCameraEntity(PrezzoCameraEntity prezzoCameraEntity);
 
     Integer mapIdTipoToTipo(TipoCameraEntity tipo) {
         return tipo.getId();

@@ -4,13 +4,21 @@ import it.nesea.albergo.common_lib.exception.BadRequestException;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
+import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
 import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
+import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
+import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -178,6 +186,47 @@ public class CameraServiceImpl implements CameraService {
         }
         log.info("Ottenute tutte le camere: {}", camereDto);
         return camereDto;
+    }
+
+    @Override
+    public PrezzoCameraDTO getPrezzario(PrezzarioRequest request) {
+        log.info("Richiesta ricevuta per ottenere il prezzario");
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        if (camera == null) {
+            log.warn("Camera con nome {} non trovata per il prezzario", request.getNumeroCamera());
+            throw new NotFoundException("Camera non trovata");
+        }
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<PrezzoCameraEntity> criteriaQueryPrezzo = criteriaBuilder.createQuery(PrezzoCameraEntity.class);
+        Root<PrezzoCameraEntity> rootPrezzo = criteriaQueryPrezzo.from(PrezzoCameraEntity.class);
+        List<Predicate> predicatesPrezzo = new ArrayList<>();
+        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("tipo").get("id"), camera.getTipo().getId()));
+        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("numeroOccupanti"), request.getNumeroOccupanti()));
+        criteriaQueryPrezzo.select(rootPrezzo).where(criteriaBuilder.and(predicatesPrezzo.toArray(new Predicate[0])));
+        PrezzoCameraEntity prezzoCameraEntity;
+        try {
+            prezzoCameraEntity = entityManager.createQuery(criteriaQueryPrezzo).getSingleResult();
+        } catch (NoResultException e) {
+            log.warn("Prezzario non trovato per numero occupanti {}", request.getNumeroOccupanti());
+            throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
+        }
+//        BigDecimal prezzoTotale = prezzoCameraEntity.getPrezzoTotale();
+//        BigDecimal prezzoAPersona = BigDecimal.ZERO;
+//        for (FasciaEta fasciaEtaRequest : request.getEta()) {
+//            FasciaEta fasciaEta = entityManager.find(FasciaEta.class, fasciaEtaRequest);
+//            if (fasciaEta == null) {
+//                log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
+//                throw new NotFoundException("Fascia d'età non trovata per il prezzario");
+//            }
+//            prezzoAPersona = prezzoTotale.divide(BigDecimal.valueOf(request.getNumeroOccupanti())).setScale(2, RoundingMode.HALF_UP);
+//            if (fasciaEta.getSconto() != null){
+//                prezzoAPersona = prezzoAPersona.subtract(prezzoAPersona.multiply(fasciaEta.getSconto()));
+//            }
+//        }
+//          todo : aggiungere classe per gestione fasce età e correggere logica per lo sconto
+        PrezzoCameraDTO prezzoCameraDto = cameraMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
+        log.info("Ottenuto il prezzario: [{}]", prezzoCameraDto);
+        return prezzoCameraDto;
     }
 
     private BigDecimal calcolaPercentuale(int totale, int parte) {
