@@ -26,9 +26,8 @@ public class CreaCameraRequest implements Serializable {
     @Size(max = 20)
     String numeroCamera;
 
-    @NotBlank(message = "tipo non può essere vuoto")
-    @Size(max = 50)
-    String tipo;
+    @NotNull(message = "il tipo della camera deve essere definito")
+    Integer idTipo;
 
     @NotNull(message = "lo stato della camera deve essere definito")
     Integer idStato;

@@ -56,7 +56,7 @@ public class CameraServiceImpl implements CameraService {
             log.warn("Tentativo di creare una camera con una data di inizio disponibilità antecedente alla data odierna: {}", request.getDataInizioDisponibilita());
             throw new BadRequestException("La data di inizio disponibilità non può essere antecedente alla data odierna");
         }
-        if (utilService.getStatoCameraEntity(request.getIdStato()) == null) {
+        if (utilService.getStatoCamera(request.getIdStato()) == null) {
             log.warn("Stato camera non trovato per la camera con numero {}: {}", request.getNumeroCamera(), request.getIdStato());
             throw new NotFoundException("Stato camera non valido");
         }
@@ -70,7 +70,8 @@ public class CameraServiceImpl implements CameraService {
             }
         }
         camera = cameraMapper.toCameraEntityFromCreaCameraRequest(request);
-        camera.setTipo(request.getTipo().toLowerCase().trim());
+
+        camera.setTipo(utilService.getTipoCamera(request.getIdTipo()));
         camera.setNumeroAlloggiati(0);
         cameraRepository.save(camera);
         log.info("Oggetto camera salvato sul database: [{}]", camera);
@@ -119,7 +120,7 @@ public class CameraServiceImpl implements CameraService {
                 continue;
             }
             Map<String, BigDecimal> occupazioneCamera = new HashMap<>();
-            if (camera.getIdStato() == 2) {
+            if (camera.getStato().getId() == 2) {
                 camereOccupate++;
             }
             occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
@@ -136,15 +137,16 @@ public class CameraServiceImpl implements CameraService {
         return occupazioneDTO;
     }
 
+    @Override
     public DisponibilitaDTO getDisponibilita() {
         log.info("Richiesta ricevuta per ottenere la disponibilità delle camere");
-        Integer disponibilitaTotale = 0;
+        Integer disponibilitaPotenziale = 0;
         Map<String, Map<Boolean, Integer>> cameraPostiDisponibili = new HashMap<>();
         Integer disponibilitaReale = 0;
 
         List<Camera> camere = cameraRepository.findAll();
         for (Camera camera : camere) {
-            disponibilitaTotale += camera.getCapacita();
+            disponibilitaPotenziale += camera.getCapacita();
             Map<Boolean, Integer> disponibilita = new HashMap<>();
             if (camera.getDataRimozione() != null) {
                 disponibilita.put(false, camera.getCapacita());
@@ -153,13 +155,13 @@ public class CameraServiceImpl implements CameraService {
             }
             disponibilita.put(true, camera.getCapacita() - camera.getNumeroAlloggiati());
             disponibilitaReale += camera.getCapacita() - camera.getNumeroAlloggiati();
-            if (camera.getIdStato() == 2) {
+            if (camera.getStato().getId() == 2) {
                 disponibilita.put(false, camera.getNumeroAlloggiati());
             }
             cameraPostiDisponibili.put(camera.getNumeroCamera(), disponibilita);
         }
         DisponibilitaDTO disponibilitaDto = new DisponibilitaDTO();
-        disponibilitaDto.setDisponibilitaTotale(disponibilitaTotale);
+        disponibilitaDto.setDisponibilitaPotenziale(disponibilitaPotenziale);
         disponibilitaDto.setCameraPostiDisponibili(cameraPostiDisponibili);
         disponibilitaDto.setDisponibilitaReale(disponibilitaReale);
         log.info("Calcolato disponibilità delle camere: [{}]", disponibilitaDto);
