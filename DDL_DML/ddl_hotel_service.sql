@@ -86,12 +86,10 @@ CREATE TABLE IF NOT EXISTS hotel_service.fascia_eta (
 CREATE TABLE IF NOT EXISTS hotel_service.prezzo_camera (
     id NUMBER(10) NOT NULL DEFAULT NEXT VALUE FOR hotel_service.seq_prezzo_camera,
     id_tipo NUMBER(2) NOT NULL,                          -- FK verso la tabella TIPO
-    id_fascia_eta NUMBER(2) NOT NULL,                    -- FK verso la tabella FASCIA_ETA
     prezzo_totale DECIMAL(10, 2) NOT NULL,               -- Prezzo totale con precisione e scala
     numero_occupanti NUMBER(10) NOT NULL,                -- Numero di occupanti
     CONSTRAINT pk_prezzo_camera PRIMARY KEY (id),
-    CONSTRAINT fk_prezzo_camera_tipo FOREIGN KEY (id_tipo) REFERENCES hotel_service.tipo (id),
-    CONSTRAINT fk_prezzo_camera_fascia_eta FOREIGN KEY (id_fascia_eta) REFERENCES hotel_service.fascia_eta (id)
+    CONSTRAINT fk_prezzo_camera_tipo FOREIGN KEY (id_tipo) REFERENCES hotel_service.tipo (id)
 );
 
 -- Creazione tabella CAMERA

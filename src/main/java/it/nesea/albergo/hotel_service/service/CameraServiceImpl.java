@@ -48,6 +48,8 @@ public class CameraServiceImpl implements CameraService {
     private final UtilService utilService;
 
 
+    // todo-generico : implementare controlli di integrità (ex.: numero massimo di persone che possono accedere ad una stanza = capacità stanza)
+
     @Override
     @Transactional
     public CameraDTO aggiungiCamera(CreaCameraRequest request) throws InstanceAlreadyExistsException {
@@ -193,39 +195,61 @@ public class CameraServiceImpl implements CameraService {
     public PrezzoCameraDTO getPrezzario(PrezzarioRequest request) {
         log.info("Richiesta ricevuta per ottenere il prezzario");
         Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
-        if (camera == null) {
+        if (camera == null || camera.getDataRimozione() != null) {
             log.warn("Camera con nome {} non trovata per il prezzario", request.getNumeroCamera());
             throw new NotFoundException("Camera non trovata");
         }
+        Integer numeroOccupanti = request.getEta().size();
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<PrezzoCameraEntity> criteriaQueryPrezzo = criteriaBuilder.createQuery(PrezzoCameraEntity.class);
         Root<PrezzoCameraEntity> rootPrezzo = criteriaQueryPrezzo.from(PrezzoCameraEntity.class);
         List<Predicate> predicatesPrezzo = new ArrayList<>();
         predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("tipo").get("id"), camera.getTipo().getId()));
-        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("numeroOccupanti"), request.getNumeroOccupanti()));
+        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("numeroOccupanti"), numeroOccupanti));
         criteriaQueryPrezzo.select(rootPrezzo).where(criteriaBuilder.and(predicatesPrezzo.toArray(new Predicate[0])));
         PrezzoCameraEntity prezzoCameraEntity;
         try {
             prezzoCameraEntity = entityManager.createQuery(criteriaQueryPrezzo).getSingleResult();
         } catch (NoResultException e) {
-            log.warn("Prezzario non trovato per numero occupanti {}", request.getNumeroOccupanti());
+            log.warn("Prezzario non trovato per numero occupanti {}", numeroOccupanti);
             throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
         }
-        BigDecimal prezzoTotale = prezzoCameraEntity.getPrezzoTotale();
-        BigDecimal prezzoAPersona;
-        for (Integer fasciaEtaRequest : request.getEta()) {
-            FasciaEtaEntity fasciaEta = entityManager.find(FasciaEtaEntity.class, fasciaEtaRequest);
-            if (fasciaEta == null) {
-                log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
-                throw new NotFoundException("Fascia d'età non trovata per il prezzario");
-            }
-            prezzoAPersona = prezzoTotale.divide(BigDecimal.valueOf(request.getNumeroOccupanti())).setScale(2, RoundingMode.HALF_UP);
-            if (fasciaEta.getPercentualeSconto() != null) {
-                prezzoTotale = prezzoTotale.subtract(prezzoAPersona.multiply(fasciaEta.getPercentualeSconto()));
-            }
-        }
-//          todo: testare e (opzionalmente) rivisitare la logica
         PrezzoCameraDTO prezzoCameraDto = cameraMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
+        BigDecimal prezzoTotale = BigDecimal.ZERO;
+        BigDecimal prezzoAPersona = prezzoCameraDto.getPrezzoTotale().divide(BigDecimal.valueOf(numeroOccupanti)).setScale(2, RoundingMode.HALF_UP);
+        List<BigDecimal> prezziAPersonaList = new ArrayList<>();
+        for (Integer fasciaEtaRequest : request.getEta()) {
+            CriteriaQuery<FasciaEtaEntity> criteriaQueryEta = criteriaBuilder.createQuery(FasciaEtaEntity.class);
+            Root<FasciaEtaEntity> rootEta = criteriaQueryEta.from(FasciaEtaEntity.class);
+            List<Predicate> predicatesEta = new ArrayList<>();
+            predicatesEta.add(criteriaBuilder.between(
+                    criteriaBuilder.literal(fasciaEtaRequest), // Valore da verificare
+                    rootEta.get("etaMin"), // Limite inferiore
+                    rootEta.get("etaMax")  // Limite superiore
+            ));
+            criteriaQueryEta.select(rootEta).where(criteriaBuilder.and(predicatesEta.toArray(new Predicate[0])));
+            FasciaEtaEntity fasciaEta;
+            try {
+                fasciaEta = entityManager.createQuery(criteriaQueryEta).getSingleResult();
+            } catch (NoResultException e) {
+                log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
+                throw new NotFoundException("Fascia d'età non trovata per il prezzario: " + e.getMessage());
+            }
+            log.debug("Fascia d'età trovata: {}", fasciaEta);
+
+            // Calcola il prezzo per persona con sconto
+            BigDecimal sconto = fasciaEta.getPercentualeSconto();
+            log.debug("Percentuale sconto: {}", sconto);
+
+            prezzoAPersona = prezzoAPersona.multiply(sconto)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            log.debug("Prezzo per persona calcolato: {}", prezzoAPersona);
+
+            prezzoTotale = prezzoTotale.add(prezzoAPersona);
+            prezziAPersonaList.add(prezzoAPersona);
+        }
+        prezzoCameraDto.setPrezziAPersona(prezziAPersonaList);
+        prezzoCameraDto.setPrezzoTotale(prezzoTotale);
         log.info("Ottenuto il prezzario: [{}]", prezzoCameraDto);
         return prezzoCameraDto;
     }

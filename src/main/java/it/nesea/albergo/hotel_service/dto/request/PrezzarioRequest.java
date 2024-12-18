@@ -23,9 +23,6 @@ public class PrezzarioRequest implements Serializable {
     @Size(min = 1)
     private String numeroCamera;
 
-    @NotNull(message = "il numero delle persone nella prenotazione deve essere fornito")
-    private Integer numeroOccupanti;
-
     @NotNull(message = "le età delle persone devono essere fornite")
     private List<Integer> eta;
 

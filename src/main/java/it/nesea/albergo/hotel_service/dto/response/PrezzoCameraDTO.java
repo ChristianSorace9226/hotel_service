@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -18,6 +19,7 @@ public class PrezzoCameraDTO implements Serializable {
 
     private Integer idTipo;
     private BigDecimal prezzoTotale;
+    private List<BigDecimal> prezziAPersona;
     private Integer numeroOccupanti;
 
 }

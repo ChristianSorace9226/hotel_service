@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "PREZZO_CAMERA", schema = "HOTEL_SERVICE")
+@Table(name = "FASCIA_ETA", schema = "HOTEL_SERVICE")
 public class FasciaEtaEntity implements Serializable {
 
     @Serial

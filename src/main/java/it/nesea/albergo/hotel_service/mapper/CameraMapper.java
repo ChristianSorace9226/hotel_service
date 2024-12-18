@@ -36,19 +36,19 @@ public abstract class CameraMapper {
     @Mapping(source = "tipo", target = "idTipo")
     public abstract PrezzoCameraDTO toPrezzoCameraDTOFromPrezzoCameraEntity(PrezzoCameraEntity prezzoCameraEntity);
 
-    Integer mapIdTipoToTipo(TipoCameraEntity tipo) {
+    Integer mapTipoToIdTipo(TipoCameraEntity tipo) {
         return tipo.getId();
     }
 
-    TipoCameraEntity mapTipoToIdTipo(Integer idTipo) {
+    TipoCameraEntity mapIdTipoToTipo(Integer idTipo) {
         return utilService.getTipoCamera(idTipo);
     }
 
-    Integer mapIdStatoToStato(StatoCameraEntity stato) {
+    Integer mapStatoToIdStato(StatoCameraEntity stato) {
         return stato.getId();
     }
 
-    StatoCameraEntity mapStatoToIdStato(Integer idStato) {
+    StatoCameraEntity mapIdStatoToStato(Integer idStato) {
         return utilService.getStatoCamera(idStato);
     }
 }

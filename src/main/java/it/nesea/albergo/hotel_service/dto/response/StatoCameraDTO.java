@@ -13,6 +13,6 @@ import java.io.Serializable;
 public class StatoCameraDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 8767172377150008240L;
-    private Long id;
+    private Integer id;
     private String stato;
 }
