@@ -3,12 +3,14 @@ package it.nesea.albergo.hotel_service.service;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
+import it.nesea.albergo.hotel_service.model.Camera;
+import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,21 +67,38 @@ public class UtilServiceImpl implements UtilService {
     @Override
     public StatoCameraEntity getStatoCamera(Integer idStato) {
         log.info("Ricevuta richiesta getStatoCamera con id: {}", idStato);
-        try {
-            return entityManager.find(StatoCameraEntity.class, idStato);
-        } catch (NoResultException e) {
+        StatoCameraEntity statoCamera = entityManager.find(StatoCameraEntity.class, idStato);
+        if (statoCamera == null) {
             throw new NotFoundException("StatoCamera non presente per l'id fornito");
         }
+        return statoCamera;
     }
 
     @Override
     public TipoCameraEntity getTipoCamera(Integer idTipo) {
         log.info("Ricevuta richiesta getTipoCamera con id: {}", idTipo);
-        try {
-            return entityManager.find(TipoCameraEntity.class, idTipo);
-        } catch (NoResultException e) {
+        TipoCameraEntity tipoCamera = entityManager.find(TipoCameraEntity.class, idTipo);
+        if (tipoCamera == null) {
             throw new NotFoundException("TipoCamera non presente per l'id fornito");
         }
+        return tipoCamera;
+    }
+
+    @Override
+    public PrezzoCameraEntity getPrezzoCamera(Camera camera, Integer numeroOccupanti) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<PrezzoCameraEntity> criteriaQueryPrezzo = criteriaBuilder.createQuery(PrezzoCameraEntity.class);
+        Root<PrezzoCameraEntity> rootPrezzo = criteriaQueryPrezzo.from(PrezzoCameraEntity.class);
+        List<Predicate> predicatesPrezzo = new ArrayList<>();
+        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("tipo").get("id"), camera.getTipo().getId()));
+        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("numeroOccupanti"), numeroOccupanti));
+        criteriaQueryPrezzo.select(rootPrezzo).where(criteriaBuilder.and(predicatesPrezzo.toArray(new Predicate[0])));
+        PrezzoCameraEntity prezzoCameraEntity = entityManager.createQuery(criteriaQueryPrezzo).getSingleResult();
+        if (prezzoCameraEntity == null) {
+            log.warn("Prezzario non trovato per numero occupanti {}", numeroOccupanti);
+            throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
+        }
+        return prezzoCameraEntity;
     }
 
 }

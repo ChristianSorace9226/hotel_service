@@ -14,6 +14,7 @@ import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.FasciaEtaEntity;
 import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
+import it.nesea.albergo.hotel_service.util.Util;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -46,22 +47,17 @@ public class CameraServiceImpl implements CameraService {
     private final CameraRepository cameraRepository;
     private final CameraMapper cameraMapper;
     private final UtilService utilService;
+    private final Util util;
 
-
-    // todo-generico : implementare controlli di integrità (ex.: numero massimo di persone che possono accedere ad una stanza = capacità stanza)
 
     @Override
     @Transactional
     public CameraDTO aggiungiCamera(CreaCameraRequest request) throws InstanceAlreadyExistsException {
         log.info("Richiesta ricevuta per aggiungere una camera: [{}]", request);
-        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         if (camera != null) {
             log.warn("Tentativo di creare una camera con il numeroCamera già esistente: {}", request.getNumeroCamera());
             throw new InstanceAlreadyExistsException("Numero camera già presente nel db");
-        }
-        if (request.getCapacita() <= 0) {
-            log.warn("Tentativo di creare una camera con capacità pari a 0: {}", request.getCapacita());
-            throw new BadRequestException("La capacità della camera deve essere maggiore di 0");
         }
         if (request.getDataInizioDisponibilita().isBefore(LocalDate.now())) {
             log.warn("Tentativo di creare una camera con una data di inizio disponibilità antecedente alla data odierna: {}", request.getDataInizioDisponibilita());
@@ -81,8 +77,10 @@ public class CameraServiceImpl implements CameraService {
             }
         }
         camera = cameraMapper.toCameraEntityFromCreaCameraRequest(request);
-
+        camera.setNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         camera.setTipo(utilService.getTipoCamera(request.getIdTipo()));
+        camera.setCapacita(camera.getTipo().getId());
+        camera.setPrezzoPerNotte(utilService.getPrezzoCamera(camera, camera.getCapacita()).getPrezzoTotale());
         camera.setNumeroAlloggiati(0);
         cameraRepository.save(camera);
         log.info("Oggetto camera salvato sul database: [{}]", camera);
@@ -95,7 +93,7 @@ public class CameraServiceImpl implements CameraService {
     @Transactional
     public Void eliminaCamera(EliminaCameraRequest request) {
         log.info("Richiesta ricevuta per la rimozione della camera: [{}]", request);
-        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         if (camera == null) {
             log.warn("Camera con numero {} non trovata per la rimozione", request.getNumeroCamera());
             throw new NotFoundException("Camera non trovata");
@@ -134,11 +132,11 @@ public class CameraServiceImpl implements CameraService {
             if (camera.getStato().getId() == 2) {
                 camereOccupate++;
             }
-            occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
+            occupazioneCamera.put(camera.getNumeroCamera(), util.calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
             listaOccupazioneCamere.add(occupazioneCamera);
         }
 //        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
-        BigDecimal percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal percentualeOccupazione = util.calcolaPercentuale(totaleCamere, camereOccupate).setScale(2, RoundingMode.HALF_UP);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
         occupazioneDTO.setPercentualeOccupazioneTotale(percentualeOccupazione);
@@ -196,31 +194,13 @@ public class CameraServiceImpl implements CameraService {
     public PrezzoCameraDTO getPrezzario(PrezzarioRequest request) {
         log.info("Richiesta ricevuta per ottenere il prezzario");
 
-        // Recupera la camera dal DB
-        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         if (camera == null || camera.getDataRimozione() != null) {
             log.warn("Camera con nome {} non trovata per il prezzario", request.getNumeroCamera());
             throw new NotFoundException("Camera non trovata");
         }
-
-        // Calcola il numero di occupanti
         Integer numeroOccupanti = request.getEta().size();
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<PrezzoCameraEntity> criteriaQueryPrezzo = criteriaBuilder.createQuery(PrezzoCameraEntity.class);
-        Root<PrezzoCameraEntity> rootPrezzo = criteriaQueryPrezzo.from(PrezzoCameraEntity.class);
-        List<Predicate> predicatesPrezzo = new ArrayList<>();
-        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("tipo").get("id"), camera.getTipo().getId()));
-        predicatesPrezzo.add(criteriaBuilder.equal(rootPrezzo.get("numeroOccupanti"), numeroOccupanti));
-        criteriaQueryPrezzo.select(rootPrezzo).where(criteriaBuilder.and(predicatesPrezzo.toArray(new Predicate[0])));
-
-        PrezzoCameraEntity prezzoCameraEntity;
-        try {
-            prezzoCameraEntity = entityManager.createQuery(criteriaQueryPrezzo).getSingleResult();
-        } catch (NoResultException e) {
-            log.warn("Prezzario non trovato per numero occupanti {}", numeroOccupanti);
-            throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
-        }
-
+        PrezzoCameraEntity prezzoCameraEntity = utilService.getPrezzoCamera(camera, numeroOccupanti);
         PrezzoCameraDTO prezzoCameraDto = cameraMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
 
         // Prezzo base per persona (senza sconto)
@@ -230,16 +210,15 @@ public class CameraServiceImpl implements CameraService {
         List<BigDecimal> prezziAPersonaList = new ArrayList<>();
         BigDecimal prezzoTotaleConSconto = BigDecimal.ZERO;
 
-        // Itera sulle età per determinare gli sconti applicabili
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<FasciaEtaEntity> criteriaQueryEta = criteriaBuilder.createQuery(FasciaEtaEntity.class);
+        Root<FasciaEtaEntity> rootEta = criteriaQueryEta.from(FasciaEtaEntity.class);
         for (Integer fasciaEtaRequest : request.getEta()) {
-            // Recupera la fascia di età dal database per determinare lo sconto
-            CriteriaQuery<FasciaEtaEntity> criteriaQueryEta = criteriaBuilder.createQuery(FasciaEtaEntity.class);
-            Root<FasciaEtaEntity> rootEta = criteriaQueryEta.from(FasciaEtaEntity.class);
             List<Predicate> predicatesEta = new ArrayList<>();
             predicatesEta.add(criteriaBuilder.between(
-                    criteriaBuilder.literal(fasciaEtaRequest), // Età richiesta
-                    rootEta.get("etaMin"), // Limite inferiore
-                    rootEta.get("etaMax")  // Limite superiore
+                    criteriaBuilder.literal(fasciaEtaRequest),
+                    rootEta.get("etaMin"),
+                    rootEta.get("etaMax")
             ));
             criteriaQueryEta.select(rootEta).where(criteriaBuilder.and(predicatesEta.toArray(new Predicate[0])));
 
@@ -248,47 +227,33 @@ public class CameraServiceImpl implements CameraService {
                 fasciaEta = entityManager.createQuery(criteriaQueryEta).getSingleResult();
             } catch (NoResultException e) {
                 log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
-                throw new NotFoundException("Fascia d'età non trovata per il prezzario: " + e.getMessage());
+                throw new NotFoundException("Fascia d'età non trovata per il prezzario");
             }
-
             log.info("Fascia d'età trovata: [{}]", fasciaEta);
 
-            // Calcola lo sconto
+            // Calcolo lo sconto
             BigDecimal sconto = fasciaEta.getPercentualeSconto();
             log.info("Percentuale sconto: {}", sconto);
 
-            // Se la persona ha diritto allo sconto, applica lo sconto
-            BigDecimal prezzoPerPersona;
-            if (sconto.compareTo(BigDecimal.ZERO) > 0) {
-                prezzoPerPersona = prezzoAPersonaBase.subtract(prezzoAPersonaBase.multiply(sconto)
-                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
-            } else {
-                prezzoPerPersona = prezzoAPersonaBase;
-            }
+            // Applico lo sconto
+            BigDecimal prezzoPerPersona = prezzoAPersonaBase.subtract(prezzoAPersonaBase.multiply(sconto)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
 
             log.info("Prezzo per persona (con o senza sconto): {}", prezzoPerPersona);
 
-            // Aggiungi il prezzo per questa persona al totale con sconto
+            // Aggiungo il prezzo per questa persona al totale con sconto
             prezzoTotaleConSconto = prezzoTotaleConSconto.add(prezzoPerPersona);
             prezziAPersonaList.add(prezzoPerPersona);
         }
 
-        // Imposta i prezzi per persona con sconto
+        // Imposto i prezzi per persona con sconto
         prezzoCameraDto.setPrezziAPersona(prezziAPersonaList);
 
-        // Imposta il prezzo totale con sconto
+        // Imposto il prezzo totale con sconto
         prezzoCameraDto.setPrezzoTotale(prezzoTotaleConSconto.setScale(2, RoundingMode.HALF_UP));
 
         log.info("Ottenuto il prezzario: [{}]", prezzoCameraDto);
         return prezzoCameraDto;
-    }
-
-
-    private BigDecimal calcolaPercentuale(int totale, int parte) {
-        if (totale == 0) {
-            return BigDecimal.ZERO;
-        }
-        return BigDecimal.valueOf(parte * 100.0 / totale);
     }
 
 }

@@ -1,6 +1,7 @@
 package it.nesea.albergo.hotel_service.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,7 +24,8 @@ public class PrezzarioRequest implements Serializable {
     @Size(min = 1)
     private String numeroCamera;
 
-    @NotNull(message = "le età delle persone devono essere fornite")
+    @NotNull(message = "l'età delle persone non devono essere null")
+    @NotEmpty(message = "l'età delle persone devono essere fornite")
     private List<Integer> eta;
 
 }

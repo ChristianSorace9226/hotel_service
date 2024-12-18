@@ -32,11 +32,11 @@ public class CreaCameraRequest implements Serializable {
     @NotNull(message = "lo stato della camera deve essere definito")
     Integer idStato;
 
-    @NotNull(message = "capacita non può essere null")
-    Integer capacita;
+//    @NotNull(message = "capacita non può essere null")
+//    Integer capacita;
 
-    @NotNull(message = "prezzo per notte non può essere null")
-    BigDecimal prezzoPerNotte;
+//    @NotNull(message = "prezzo per notte non può essere null")
+//    BigDecimal prezzoPerNotte;
 
     @NotNull(message = "data inizio disponibilita non può essere null")
     LocalDate dataInizioDisponibilita;

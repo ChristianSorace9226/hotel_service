@@ -51,7 +51,7 @@ public class CameraController {
     }
 
     @PostMapping(path = "/get-prezzario")
-    public ResponseEntity<CustomResponse<PrezzoCameraDTO>> getPrezzarioCamera(@RequestBody PrezzarioRequest request) {
+    public ResponseEntity<CustomResponse<PrezzoCameraDTO>> getPrezzarioCamera(@Valid @RequestBody PrezzarioRequest request) {
         return ResponseEntity.ok(CustomResponse.success(cameraService.getPrezzario(request)));
     }
 

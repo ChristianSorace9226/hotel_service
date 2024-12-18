@@ -46,17 +46,9 @@ MAXVALUE 99
 NOCACHE
 NOCYCLE;
 
--- Creazione sequenza per l'id del tipo
-CREATE SEQUENCE IF NOT EXISTS hotel_service.seq_tipo
-START WITH 1
-INCREMENT BY 1
-MAXVALUE 99
-NOCACHE
-NOCYCLE;
-
 -- Creazione tabella TIPO
 CREATE TABLE IF NOT EXISTS hotel_service.tipo (
-    id NUMBER(2) NOT NULL DEFAULT NEXT VALUE FOR hotel_service.seq_tipo,
+    id NUMBER(2) NOT NULL,
     tipo VARCHAR(30) NOT NULL,
     CONSTRAINT pk_tipo PRIMARY KEY(id),
     CONSTRAINT uq_tipo UNIQUE (tipo) -- Vincolo di unicità sui tipi
