@@ -27,11 +27,13 @@ public class Camera implements Serializable {
     @Column(name = "NUMERO_CAMERA", nullable = false, length = 20)
     private String numeroCamera;
 
-    @Column(name = "TIPO", nullable = false, length = 50)
-    private String tipo;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ID_TIPO", nullable = false)
+    private TipoCameraEntity tipo;
 
-    @Column(name = "ID_STATO", nullable = false)
-    private Integer idStato;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ID_STATO", nullable = false)
+    private StatoCameraEntity stato;
 
     @Column(name = "CAPACITA", nullable = false, precision = 2)
     private Integer capacita;

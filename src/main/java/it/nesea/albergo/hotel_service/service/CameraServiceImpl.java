@@ -4,13 +4,23 @@ import it.nesea.albergo.common_lib.exception.BadRequestException;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
+import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
 import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
+import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
+import it.nesea.albergo.hotel_service.model.FasciaEtaEntity;
+import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
+import it.nesea.albergo.hotel_service.util.Util;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -37,26 +47,23 @@ public class CameraServiceImpl implements CameraService {
     private final CameraRepository cameraRepository;
     private final CameraMapper cameraMapper;
     private final UtilService utilService;
+    private final Util util;
 
 
     @Override
     @Transactional
     public CameraDTO aggiungiCamera(CreaCameraRequest request) throws InstanceAlreadyExistsException {
         log.info("Richiesta ricevuta per aggiungere una camera: [{}]", request);
-        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         if (camera != null) {
             log.warn("Tentativo di creare una camera con il numeroCamera già esistente: {}", request.getNumeroCamera());
             throw new InstanceAlreadyExistsException("Numero camera già presente nel db");
-        }
-        if (request.getCapacita() <= 0) {
-            log.warn("Tentativo di creare una camera con capacità pari a 0: {}", request.getCapacita());
-            throw new BadRequestException("La capacità della camera deve essere maggiore di 0");
         }
         if (request.getDataInizioDisponibilita().isBefore(LocalDate.now())) {
             log.warn("Tentativo di creare una camera con una data di inizio disponibilità antecedente alla data odierna: {}", request.getDataInizioDisponibilita());
             throw new BadRequestException("La data di inizio disponibilità non può essere antecedente alla data odierna");
         }
-        if (utilService.getStatoCameraEntity(request.getIdStato()) == null) {
+        if (utilService.getStatoCamera(request.getIdStato()) == null) {
             log.warn("Stato camera non trovato per la camera con numero {}: {}", request.getNumeroCamera(), request.getIdStato());
             throw new NotFoundException("Stato camera non valido");
         }
@@ -70,7 +77,10 @@ public class CameraServiceImpl implements CameraService {
             }
         }
         camera = cameraMapper.toCameraEntityFromCreaCameraRequest(request);
-        camera.setTipo(request.getTipo().toLowerCase().trim());
+        camera.setNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
+        camera.setTipo(utilService.getTipoCamera(request.getIdTipo()));
+        camera.setCapacita(camera.getTipo().getId());
+        camera.setPrezzoPerNotte(utilService.getPrezzoCamera(camera, camera.getCapacita()).getPrezzoTotale());
         camera.setNumeroAlloggiati(0);
         cameraRepository.save(camera);
         log.info("Oggetto camera salvato sul database: [{}]", camera);
@@ -83,7 +93,7 @@ public class CameraServiceImpl implements CameraService {
     @Transactional
     public Void eliminaCamera(EliminaCameraRequest request) {
         log.info("Richiesta ricevuta per la rimozione della camera: [{}]", request);
-        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         if (camera == null) {
             log.warn("Camera con numero {} non trovata per la rimozione", request.getNumeroCamera());
             throw new NotFoundException("Camera non trovata");
@@ -119,14 +129,14 @@ public class CameraServiceImpl implements CameraService {
                 continue;
             }
             Map<String, BigDecimal> occupazioneCamera = new HashMap<>();
-            if (camera.getIdStato() == 2) {
+            if (camera.getStato().getId() == 2) {
                 camereOccupate++;
             }
-            occupazioneCamera.put(camera.getNumeroCamera(), calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
+            occupazioneCamera.put(camera.getNumeroCamera(), util.calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
             listaOccupazioneCamere.add(occupazioneCamera);
         }
 //        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
-        BigDecimal percentualeOccupazione = calcolaPercentuale(totaleCamere, camereOccupate).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal percentualeOccupazione = util.calcolaPercentuale(totaleCamere, camereOccupate).setScale(2, RoundingMode.HALF_UP);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
         occupazioneDTO.setPercentualeOccupazioneTotale(percentualeOccupazione);
@@ -136,15 +146,16 @@ public class CameraServiceImpl implements CameraService {
         return occupazioneDTO;
     }
 
+    @Override
     public DisponibilitaDTO getDisponibilita() {
         log.info("Richiesta ricevuta per ottenere la disponibilità delle camere");
-        Integer disponibilitaTotale = 0;
+        Integer disponibilitaPotenziale = 0;
         Map<String, Map<Boolean, Integer>> cameraPostiDisponibili = new HashMap<>();
         Integer disponibilitaReale = 0;
 
         List<Camera> camere = cameraRepository.findAll();
         for (Camera camera : camere) {
-            disponibilitaTotale += camera.getCapacita();
+            disponibilitaPotenziale += camera.getCapacita();
             Map<Boolean, Integer> disponibilita = new HashMap<>();
             if (camera.getDataRimozione() != null) {
                 disponibilita.put(false, camera.getCapacita());
@@ -153,13 +164,13 @@ public class CameraServiceImpl implements CameraService {
             }
             disponibilita.put(true, camera.getCapacita() - camera.getNumeroAlloggiati());
             disponibilitaReale += camera.getCapacita() - camera.getNumeroAlloggiati();
-            if (camera.getIdStato() == 2) {
+            if (camera.getStato().getId() == 2) {
                 disponibilita.put(false, camera.getNumeroAlloggiati());
             }
             cameraPostiDisponibili.put(camera.getNumeroCamera(), disponibilita);
         }
         DisponibilitaDTO disponibilitaDto = new DisponibilitaDTO();
-        disponibilitaDto.setDisponibilitaTotale(disponibilitaTotale);
+        disponibilitaDto.setDisponibilitaPotenziale(disponibilitaPotenziale);
         disponibilitaDto.setCameraPostiDisponibili(cameraPostiDisponibili);
         disponibilitaDto.setDisponibilitaReale(disponibilitaReale);
         log.info("Calcolato disponibilità delle camere: [{}]", disponibilitaDto);
@@ -178,11 +189,71 @@ public class CameraServiceImpl implements CameraService {
         return camereDto;
     }
 
-    private BigDecimal calcolaPercentuale(int totale, int parte) {
-        if (totale == 0) {
-            return BigDecimal.ZERO;
+
+    @Override
+    public PrezzoCameraDTO getPrezzario(PrezzarioRequest request) {
+        log.info("Richiesta ricevuta per ottenere il prezzario");
+
+        Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
+        if (camera == null || camera.getDataRimozione() != null) {
+            log.warn("Camera con nome {} non trovata per il prezzario", request.getNumeroCamera());
+            throw new NotFoundException("Camera non trovata");
         }
-        return BigDecimal.valueOf(parte * 100.0 / totale);
+        Integer numeroOccupanti = request.getEta().size();
+        PrezzoCameraEntity prezzoCameraEntity = utilService.getPrezzoCamera(camera, numeroOccupanti);
+        PrezzoCameraDTO prezzoCameraDto = cameraMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
+
+        // Prezzo base per persona (senza sconto)
+        BigDecimal prezzoTotale = prezzoCameraDto.getPrezzoTotale();
+        BigDecimal prezzoAPersonaBase = prezzoTotale.divide(BigDecimal.valueOf(numeroOccupanti), 2, RoundingMode.HALF_UP);
+
+        List<BigDecimal> prezziAPersonaList = new ArrayList<>();
+        BigDecimal prezzoTotaleConSconto = BigDecimal.ZERO;
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<FasciaEtaEntity> criteriaQueryEta = criteriaBuilder.createQuery(FasciaEtaEntity.class);
+        Root<FasciaEtaEntity> rootEta = criteriaQueryEta.from(FasciaEtaEntity.class);
+        for (Integer fasciaEtaRequest : request.getEta()) {
+            List<Predicate> predicatesEta = new ArrayList<>();
+            predicatesEta.add(criteriaBuilder.between(
+                    criteriaBuilder.literal(fasciaEtaRequest),
+                    rootEta.get("etaMin"),
+                    rootEta.get("etaMax")
+            ));
+            criteriaQueryEta.select(rootEta).where(criteriaBuilder.and(predicatesEta.toArray(new Predicate[0])));
+
+            FasciaEtaEntity fasciaEta;
+            try {
+                fasciaEta = entityManager.createQuery(criteriaQueryEta).getSingleResult();
+            } catch (NoResultException e) {
+                log.warn("Fascia d'età {} non trovata per il prezzario", fasciaEtaRequest);
+                throw new NotFoundException("Fascia d'età non trovata per il prezzario");
+            }
+            log.info("Fascia d'età trovata: [{}]", fasciaEta);
+
+            // Calcolo lo sconto
+            BigDecimal sconto = fasciaEta.getPercentualeSconto();
+            log.info("Percentuale sconto: {}", sconto);
+
+            // Applico lo sconto
+            BigDecimal prezzoPerPersona = prezzoAPersonaBase.subtract(prezzoAPersonaBase.multiply(sconto)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+
+            log.info("Prezzo per persona (con o senza sconto): {}", prezzoPerPersona);
+
+            // Aggiungo il prezzo per questa persona al totale con sconto
+            prezzoTotaleConSconto = prezzoTotaleConSconto.add(prezzoPerPersona);
+            prezziAPersonaList.add(prezzoPerPersona);
+        }
+
+        // Imposto i prezzi per persona con sconto
+        prezzoCameraDto.setPrezziAPersona(prezziAPersonaList);
+
+        // Imposto il prezzo totale con sconto
+        prezzoCameraDto.setPrezzoTotale(prezzoTotaleConSconto.setScale(2, RoundingMode.HALF_UP));
+
+        log.info("Ottenuto il prezzario: [{}]", prezzoCameraDto);
+        return prezzoCameraDto;
     }
 
 }

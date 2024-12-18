@@ -3,9 +3,11 @@ package it.nesea.albergo.hotel_service.controller;
 import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
+import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
 import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
+import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.service.CameraService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -46,6 +48,11 @@ public class CameraController {
     @GetMapping(path = "/get-all-camere")
     public ResponseEntity<CustomResponse<List<CameraDTO>>> getAllCamere() {
         return ResponseEntity.ok(CustomResponse.success(cameraService.getAllCamere()));
+    }
+
+    @PostMapping(path = "/get-prezzario")
+    public ResponseEntity<CustomResponse<PrezzoCameraDTO>> getPrezzarioCamera(@Valid @RequestBody PrezzarioRequest request) {
+        return ResponseEntity.ok(CustomResponse.success(cameraService.getPrezzario(request)));
     }
 
 }
