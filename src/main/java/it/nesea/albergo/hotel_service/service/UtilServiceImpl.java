@@ -4,7 +4,7 @@ import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
-import it.nesea.albergo.hotel_service.mapper.FasciaEtaMapper;
+import it.nesea.albergo.hotel_service.mapper.UtilMapper;
 import it.nesea.albergo.hotel_service.model.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -22,11 +22,11 @@ import java.util.List;
 public class UtilServiceImpl implements UtilService {
 
     private final EntityManager entityManager;
-    private final FasciaEtaMapper fasciaEtaMapper;
+    private final UtilMapper utilMapper;
 
-    public UtilServiceImpl(EntityManager entityManager, FasciaEtaMapper fasciaEtaMapper) {
+    public UtilServiceImpl(EntityManager entityManager, UtilMapper utilMapper) {
         this.entityManager = entityManager;
-        this.fasciaEtaMapper = fasciaEtaMapper;
+        this.utilMapper = utilMapper;
     }
 
     @Override
@@ -39,10 +39,7 @@ public class UtilServiceImpl implements UtilService {
         List<StatoCameraEntity> statiCamera = entityManager.createQuery(query).getResultList();
         List<StatoCameraDTO> statiCameraDTO = new ArrayList<>();
         for (StatoCameraEntity statoCamera : statiCamera) {
-            StatoCameraDTO statoCameraDTO = new StatoCameraDTO();
-            statoCameraDTO.setId(statoCamera.getId());
-            statoCameraDTO.setStato(statoCamera.getStato());
-            statiCameraDTO.add(statoCameraDTO);
+            statiCameraDTO.add(utilMapper.fromStatoCameraEntityToDTO(statoCamera));
         }
         return statiCameraDTO;
     }
@@ -57,12 +54,24 @@ public class UtilServiceImpl implements UtilService {
         List<TipoCameraEntity> tipoCameraEntityList = entityManager.createQuery(query).getResultList();
         List<TipoCameraDTO> tipiCameraDTO = new ArrayList<>();
         for (TipoCameraEntity tipoCamera : tipoCameraEntityList) {
-            TipoCameraDTO tipoCameraDTO = new TipoCameraDTO();
-            tipoCameraDTO.setId(tipoCamera.getId());
-            tipoCameraDTO.setTipo(tipoCamera.getTipo());
-            tipiCameraDTO.add(tipoCameraDTO);
+            tipiCameraDTO.add(utilMapper.fromTipoCameraEntityToDTO(tipoCamera));
         }
         return tipiCameraDTO;
+    }
+
+    @Override
+    public List<FasciaEtaDTO> getListaFasciaEta() {
+        log.info("Ricevuta richiesta getAllFasciaEta");
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<FasciaEtaEntity> query = cb.createQuery(FasciaEtaEntity.class);
+        Root<FasciaEtaEntity> root = query.from(FasciaEtaEntity.class);
+        query.select(root);
+        List<FasciaEtaEntity> fasceEta = entityManager.createQuery(query).getResultList();
+        List<FasciaEtaDTO> fasceEtaDTO = new ArrayList<>();
+        for (FasciaEtaEntity fasciaEta : fasceEta) {
+            fasceEtaDTO.add(utilMapper.fromEntityToDTO(fasciaEta));
+        }
+        return fasceEtaDTO;
     }
 
     @Override
@@ -100,21 +109,6 @@ public class UtilServiceImpl implements UtilService {
             throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
         }
         return prezzoCameraEntity;
-    }
-
-    @Override
-    public List<FasciaEtaDTO> getListaFasciaEta() {
-        log.info("Ricevuta richiesta getAllFasciaEta");
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<FasciaEtaEntity> query = cb.createQuery(FasciaEtaEntity.class);
-        Root<FasciaEtaEntity> root = query.from(FasciaEtaEntity.class);
-        query.select(root);
-        List<FasciaEtaEntity> fasceEta = entityManager.createQuery(query).getResultList();
-        List<FasciaEtaDTO> fasceEtaDTO = new ArrayList<>();
-        for (FasciaEtaEntity fasciaEta : fasceEta) {
-            fasceEtaDTO.add(fasciaEtaMapper.fromEntityToDTO(fasciaEta));
-        }
-        return fasceEtaDTO;
     }
 
 }
