@@ -16,6 +16,7 @@ public class FasciaEtaDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = -6982382671386812516L;
 
+    private Integer id;
     private String descrizione;
     private Integer etaMin;
     private Integer etaMax;

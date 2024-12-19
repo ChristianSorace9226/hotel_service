@@ -1,12 +1,11 @@
 package it.nesea.albergo.hotel_service.service;
 
 import it.nesea.albergo.common_lib.exception.NotFoundException;
+import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
-import it.nesea.albergo.hotel_service.model.Camera;
-import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
-import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
-import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
+import it.nesea.albergo.hotel_service.mapper.FasciaEtaMapper;
+import it.nesea.albergo.hotel_service.model.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -23,9 +22,11 @@ import java.util.List;
 public class UtilServiceImpl implements UtilService {
 
     private final EntityManager entityManager;
+    private final FasciaEtaMapper fasciaEtaMapper;
 
-    public UtilServiceImpl(EntityManager entityManager) {
+    public UtilServiceImpl(EntityManager entityManager, FasciaEtaMapper fasciaEtaMapper) {
         this.entityManager = entityManager;
+        this.fasciaEtaMapper = fasciaEtaMapper;
     }
 
     @Override
@@ -99,6 +100,21 @@ public class UtilServiceImpl implements UtilService {
             throw new NotFoundException("Prezzario non trovato per il numero di persone fornito");
         }
         return prezzoCameraEntity;
+    }
+
+    @Override
+    public List<FasciaEtaDTO> getListaFasciaEta() {
+        log.info("Ricevuta richiesta getAllFasciaEta");
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<FasciaEtaEntity> query = cb.createQuery(FasciaEtaEntity.class);
+        Root<FasciaEtaEntity> root = query.from(FasciaEtaEntity.class);
+        query.select(root);
+        List<FasciaEtaEntity> fasceEta = entityManager.createQuery(query).getResultList();
+        List<FasciaEtaDTO> fasceEtaDTO = new ArrayList<>();
+        for (FasciaEtaEntity fasciaEta : fasceEta) {
+            fasceEtaDTO.add(fasciaEtaMapper.fromEntityToDTO(fasciaEta));
+        }
+        return fasceEtaDTO;
     }
 
 }

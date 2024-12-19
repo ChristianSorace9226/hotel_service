@@ -1,6 +1,7 @@
 package it.nesea.albergo.hotel_service.controller;
 
 import it.nesea.albergo.common_lib.dto.response.CustomResponse;
+import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
 import it.nesea.albergo.hotel_service.service.UtilService;
@@ -29,6 +30,11 @@ public class UtilController {
     @GetMapping("/get-tipi")
     public ResponseEntity<CustomResponse<List<TipoCameraDTO>>> getTipi() {
         return ResponseEntity.ok(CustomResponse.success(util.getAllTipi()));
+    }
+
+    @GetMapping("/get-fascia-eta")
+    public ResponseEntity<CustomResponse<List<FasciaEtaDTO>>> getFasciaEta() {
+        return ResponseEntity.ok(CustomResponse.success(util.getListaFasciaEta()));
     }
 
 }
