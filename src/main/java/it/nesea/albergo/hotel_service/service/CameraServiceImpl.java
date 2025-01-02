@@ -1,5 +1,6 @@
 package it.nesea.albergo.hotel_service.service;
 
+import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.common_lib.exception.BadRequestException;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
@@ -8,8 +9,8 @@ import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
 import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
-import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.mapper.CameraMapper;
+import it.nesea.albergo.hotel_service.mapper.UtilMapper;
 import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.FasciaEtaEntity;
 import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
@@ -21,9 +22,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,16 +40,25 @@ import java.util.Map;
 
 @Service
 @Data
-@AllArgsConstructor
 @Slf4j
 public class CameraServiceImpl implements CameraService {
 
     private final EntityManager entityManager;
     private final CameraRepository cameraRepository;
     private final CameraMapper cameraMapper;
+    private final UtilMapper utilMapper;
     private final UtilService utilService;
     private final Util util;
 
+    public CameraServiceImpl(CameraMapper cameraMapper, CameraRepository cameraRepository,
+                             EntityManager entityManager, Util util, UtilMapper utilMapper, @Lazy UtilService utilService) {
+        this.cameraMapper = cameraMapper;
+        this.cameraRepository = cameraRepository;
+        this.entityManager = entityManager;
+        this.util = util;
+        this.utilMapper = utilMapper;
+        this.utilService = utilService;
+    }
 
     @Override
     @Transactional
@@ -189,19 +199,17 @@ public class CameraServiceImpl implements CameraService {
         return camereDto;
     }
 
-
     @Override
     public PrezzoCameraDTO getPrezzario(PrezzarioRequest request) {
-        log.info("Richiesta ricevuta per ottenere il prezzario");
-
+        log.info("Richiesta ricevuta per ottenere il prezzario per camera");
         Camera camera = cameraRepository.findByNumeroCamera(request.getNumeroCamera().toLowerCase().trim());
         if (camera == null || camera.getDataRimozione() != null) {
-            log.warn("Camera con nome {} non trovata per il prezzario", request.getNumeroCamera());
+            log.warn("Camera con numero {} non trovata per il prezzario", request.getNumeroCamera());
             throw new NotFoundException("Camera non trovata");
         }
         Integer numeroOccupanti = request.getEta().size();
         PrezzoCameraEntity prezzoCameraEntity = utilService.getPrezzoCamera(camera, numeroOccupanti);
-        PrezzoCameraDTO prezzoCameraDto = cameraMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
+        PrezzoCameraDTO prezzoCameraDto = utilMapper.toPrezzoCameraDTOFromPrezzoCameraEntity(prezzoCameraEntity);
 
         // Prezzo base per persona (senza sconto)
         BigDecimal prezzoTotale = prezzoCameraDto.getPrezzoTotale();
@@ -249,11 +257,13 @@ public class CameraServiceImpl implements CameraService {
         // Imposto i prezzi per persona con sconto
         prezzoCameraDto.setPrezziAPersona(prezziAPersonaList);
 
+        prezzoCameraDto.setNumeroCamera(request.getNumeroCamera());
+
         // Imposto il prezzo totale con sconto
         prezzoCameraDto.setPrezzoTotale(prezzoTotaleConSconto.setScale(2, RoundingMode.HALF_UP));
 
         log.info("Ottenuto il prezzario: [{}]", prezzoCameraDto);
         return prezzoCameraDto;
-    }
 
+    }
 }

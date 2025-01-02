@@ -1,5 +1,6 @@
 package it.nesea.albergo.hotel_service.controller;
 
+import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
@@ -7,7 +8,6 @@ import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.DisponibilitaDTO;
 import it.nesea.albergo.hotel_service.dto.response.OccupazioneDTO;
-import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.service.CameraService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,8 @@
 package it.nesea.albergo.hotel_service.service;
 
+import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
+import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
@@ -12,6 +14,8 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,10 +27,12 @@ public class UtilServiceImpl implements UtilService {
 
     private final EntityManager entityManager;
     private final UtilMapper utilMapper;
+    private final CameraService cameraService;
 
-    public UtilServiceImpl(EntityManager entityManager, UtilMapper utilMapper) {
+    public UtilServiceImpl(EntityManager entityManager, UtilMapper utilMapper, @Lazy CameraService cameraService) {
         this.entityManager = entityManager;
         this.utilMapper = utilMapper;
+        this.cameraService = cameraService;
     }
 
     @Override
@@ -73,6 +79,34 @@ public class UtilServiceImpl implements UtilService {
         }
         return fasceEtaDTO;
     }
+
+    @Override
+    public List<PrezzoCameraDTO> getListaPrezzario(List<Integer> listaEta) {
+        log.info("Richiesta ricevuta per ottenere il prezzario per almeno {} persone", listaEta);
+
+        // Costruzione del CriteriaBuilder
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        // Prima query: Ottenere camere con capacità >= numeroPersone
+        CriteriaQuery<Camera> criteriaQueryCamera = criteriaBuilder.createQuery(Camera.class);
+        Root<Camera> rootCamera = criteriaQueryCamera.from(Camera.class);
+        Predicate filtroCapacita = criteriaBuilder.greaterThanOrEqualTo(rootCamera.get("capacita"), listaEta.size());
+        criteriaQueryCamera.select(rootCamera).where(filtroCapacita);
+
+        List<Camera> camere = entityManager.createQuery(criteriaQueryCamera).getResultList();
+
+        // Iterazione sulle camere filtrate
+        List<PrezzoCameraDTO> prezziCamera = new ArrayList<>();
+        for (Camera camera : camere) {
+            PrezzarioRequest prezzarioRequest = new PrezzarioRequest();
+            prezzarioRequest.setEta(listaEta);
+            prezzarioRequest.setNumeroCamera(camera.getNumeroCamera());
+            prezziCamera.add(cameraService.getPrezzario(prezzarioRequest));
+        }
+
+        return prezziCamera;
+    }
+
 
     @Override
     public StatoCameraEntity getStatoCamera(Integer idStato) {

@@ -2,7 +2,7 @@ spring:
   application:
     name: hotel_service
   datasource:
-    url: jdbc:h2:~/albergo
+    url: jdbc:h2:tcp://localhost:9092/~/albergo
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -19,3 +19,5 @@ spring:
 server:
   servlet:
     context-path: /api
+
+  port: 8080

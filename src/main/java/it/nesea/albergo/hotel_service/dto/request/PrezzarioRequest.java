@@ -20,7 +20,6 @@ public class PrezzarioRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 3508182050514536405L;
 
-    @NotBlank(message = "il nome della camera deve essere fornito")
     @Size(min = 1)
     private String numeroCamera;
 

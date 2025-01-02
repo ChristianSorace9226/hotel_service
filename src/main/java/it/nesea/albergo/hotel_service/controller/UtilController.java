@@ -1,14 +1,13 @@
 package it.nesea.albergo.hotel_service.controller;
 
+import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
 import it.nesea.albergo.hotel_service.service.UtilService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,6 +34,11 @@ public class UtilController {
     @GetMapping("/get-fascia-eta")
     public ResponseEntity<CustomResponse<List<FasciaEtaDTO>>> getFasciaEta() {
         return ResponseEntity.ok(CustomResponse.success(util.getListaFasciaEta()));
+    }
+
+    @PostMapping("/get-prezzi-camere")
+    public ResponseEntity<CustomResponse<List<PrezzoCameraDTO>>> getPrezziCamere(@RequestParam List<Integer> listaEta) {
+        return ResponseEntity.ok(CustomResponse.success(util.getListaPrezzario(listaEta)));
     }
 
 }

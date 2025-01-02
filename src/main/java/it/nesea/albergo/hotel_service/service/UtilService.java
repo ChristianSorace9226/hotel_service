@@ -1,5 +1,6 @@
 package it.nesea.albergo.hotel_service.service;
 
+import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
@@ -22,4 +23,6 @@ public interface UtilService {
     PrezzoCameraEntity getPrezzoCamera(Camera camera, Integer numeroOccupanti);
 
     List<FasciaEtaDTO> getListaFasciaEta();
+
+    List<PrezzoCameraDTO> getListaPrezzario(List<Integer> listaEta);
 }

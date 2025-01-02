@@ -1,13 +1,13 @@
 package it.nesea.albergo.hotel_service.mapper;
 
+import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
-import it.nesea.albergo.hotel_service.dto.response.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.model.Camera;
 import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
-import it.nesea.albergo.hotel_service.service.UtilService;
+import jakarta.persistence.EntityManager;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class CameraMapper {
 
     @Autowired
-    private UtilService utilService;
+    private EntityManager entityManager;
 
     @Mapping(source = "idStato", target = "stato")
     @Mapping(source = "idTipo", target = "tipo")
@@ -33,15 +33,12 @@ public abstract class CameraMapper {
     @Mapping(source = "idTipo", target = "tipo")
     public abstract Camera toCameraEntityFromCreaCameraRequest(CreaCameraRequest request);
 
-    @Mapping(source = "tipo", target = "idTipo")
-    public abstract PrezzoCameraDTO toPrezzoCameraDTOFromPrezzoCameraEntity(PrezzoCameraEntity prezzoCameraEntity);
-
     Integer mapTipoToIdTipo(TipoCameraEntity tipo) {
         return tipo.getId();
     }
 
     TipoCameraEntity mapIdTipoToTipo(Integer idTipo) {
-        return utilService.getTipoCamera(idTipo);
+        return entityManager.find(TipoCameraEntity.class,idTipo);
     }
 
     Integer mapStatoToIdStato(StatoCameraEntity stato) {
@@ -49,6 +46,6 @@ public abstract class CameraMapper {
     }
 
     StatoCameraEntity mapIdStatoToStato(Integer idStato) {
-        return utilService.getStatoCamera(idStato);
+        return entityManager.find(StatoCameraEntity.class, idStato);
     }
 }
