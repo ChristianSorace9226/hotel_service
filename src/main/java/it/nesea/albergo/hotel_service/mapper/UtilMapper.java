@@ -8,7 +8,6 @@ import it.nesea.albergo.hotel_service.model.FasciaEtaEntity;
 import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
-import jakarta.persistence.EntityManager;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

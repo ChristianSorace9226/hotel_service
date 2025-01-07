@@ -1,10 +1,8 @@
 package it.nesea.albergo.hotel_service.mapper;
 
-import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.response.CameraDTO;
 import it.nesea.albergo.hotel_service.model.Camera;
-import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
 import jakarta.persistence.EntityManager;
@@ -38,7 +36,7 @@ public abstract class CameraMapper {
     }
 
     TipoCameraEntity mapIdTipoToTipo(Integer idTipo) {
-        return entityManager.find(TipoCameraEntity.class,idTipo);
+        return entityManager.find(TipoCameraEntity.class, idTipo);
     }
 
     Integer mapStatoToIdStato(StatoCameraEntity stato) {
