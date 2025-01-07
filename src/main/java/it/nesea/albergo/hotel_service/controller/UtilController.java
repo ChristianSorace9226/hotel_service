@@ -37,7 +37,7 @@ public class UtilController {
     }
 
     @PostMapping("/get-prezzi-camere")
-    public ResponseEntity<CustomResponse<List<PrezzoCameraDTO>>> getPrezziCamere(@RequestParam List<Integer> listaEta) {
+    public ResponseEntity<CustomResponse<List<PrezzoCameraDTO>>> getPrezziCamere(@RequestBody List<Integer> listaEta) {
         return ResponseEntity.ok(CustomResponse.success(util.getListaPrezzario(listaEta)));
     }
 
