@@ -21,3 +21,13 @@ server:
     context-path: /api
 
   port: 8080
+
+external-call:
+  prenotazione:
+    util:
+      url: http://localhost:8081/api/util
+      getCamerePrenotateOggi: /get-camere-prenotate-oggi
+
+  name:
+    prenotazione: prenotazione-external
+

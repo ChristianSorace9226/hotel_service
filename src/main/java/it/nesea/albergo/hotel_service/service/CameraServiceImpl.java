@@ -3,6 +3,7 @@ package it.nesea.albergo.hotel_service.service;
 import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
 import it.nesea.albergo.common_lib.exception.BadRequestException;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
+import it.nesea.albergo.hotel_service.controller.feign.PrenotazioneExternalController;
 import it.nesea.albergo.hotel_service.dto.request.CreaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.EliminaCameraRequest;
 import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
@@ -49,15 +50,17 @@ public class CameraServiceImpl implements CameraService {
     private final UtilMapper utilMapper;
     private final UtilService utilService;
     private final Util util;
+    private final PrenotazioneExternalController prenotazioneExternalController;
 
     public CameraServiceImpl(CameraMapper cameraMapper, CameraRepository cameraRepository,
-                             EntityManager entityManager, Util util, UtilMapper utilMapper, @Lazy UtilService utilService) {
+                             EntityManager entityManager, Util util, UtilMapper utilMapper, @Lazy UtilService utilService, PrenotazioneExternalController prenotazioneExternalController) {
         this.cameraMapper = cameraMapper;
         this.cameraRepository = cameraRepository;
         this.entityManager = entityManager;
         this.util = util;
         this.utilMapper = utilMapper;
         this.utilService = utilService;
+        this.prenotazioneExternalController = prenotazioneExternalController;
     }
 
     @Override
@@ -191,12 +194,14 @@ public class CameraServiceImpl implements CameraService {
     public List<CameraDTO> getAllCamere() {
         log.info("Richiesta ricevuta per ottenere tutte le camere");
         List<Camera> camere = cameraRepository.findAll();
-        List<CameraDTO> camereDto = new ArrayList<>();
-        for (Camera camera : camere) {
-            camereDto.add(cameraMapper.toCameraDTOFromCameraEntity(camera));
-        }
-        log.info("Ottenute tutte le camere: {}", camereDto);
-        return camereDto;
+        List<String> camerePrenotateOggi = prenotazioneExternalController.getCamerePrenotateOggi().getBody().getResponse();
+        log.info("Camere prenotate oggi: {}", camerePrenotateOggi);
+        List<CameraDTO> camereDisponibiliDto = camere.stream()
+                .filter(camera -> !camerePrenotateOggi.contains(camera.getNumeroCamera()))
+                .map(cameraMapper::toCameraDTOFromCameraEntity)
+                .toList();
+        log.info("Camere disponibili: {}", camereDisponibiliDto);
+        return camereDisponibiliDto;
     }
 
     @Override
