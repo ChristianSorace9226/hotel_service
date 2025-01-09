@@ -81,7 +81,7 @@ public class UtilServiceImpl implements UtilService {
 
     @Override
     public List<PrezzoCameraDTO> getListaPrezzario(List<Integer> listaEta) {
-        log.info("Richiesta ricevuta per ottenere il prezzario per almeno {} persone", listaEta);
+        log.info("Richiesta ricevuta per ottenere il prezzario per almeno {} persone", listaEta.size());
 
         // Costruzione del CriteriaBuilder
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
