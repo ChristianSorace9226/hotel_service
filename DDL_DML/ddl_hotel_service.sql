@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS hotel_service.camera (
     data_rimozione DATE,
     motivazione_rimozione VARCHAR(255),
     CONSTRAINT pk_camera PRIMARY KEY(id),
+    CONSTRAINT uq_num_camera UNIQUE (numero_camera),
     CONSTRAINT fk_camera_tipo FOREIGN KEY(id_tipo) REFERENCES hotel_service.tipo(id),
     CONSTRAINT fk_camera_stato FOREIGN KEY(id_stato) REFERENCES hotel_service.stato(id)
 );
