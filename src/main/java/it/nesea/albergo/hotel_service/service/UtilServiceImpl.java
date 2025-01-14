@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,8 +112,13 @@ public class UtilServiceImpl implements UtilService {
 
     @Override
     public Boolean checkDataInizioDisponibilita(CheckDateStart request) {
-       Camera cameraRequest = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
-       return !request.getDataCheckIn().isBefore(cameraRequest.getDataInizioDisponibilita().atStartOfDay());
+        log.info("Richiesta ricevuta per verificare la data di inizio disponibilità per la camera {}", request.getNumeroCamera());
+        Camera cameraRequest = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+        if (cameraRequest.getDataInizioDisponibilita() == null) {
+            log.error("Camera {} non trovata", request.getNumeroCamera());
+            throw new NotFoundException("Camera non trovata");
+        }
+        return !request.getDataCheckIn().isBefore(cameraRequest.getDataInizioDisponibilita().atStartOfDay());
     }
 
 
