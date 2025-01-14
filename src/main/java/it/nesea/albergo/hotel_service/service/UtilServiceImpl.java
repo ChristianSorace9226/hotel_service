@@ -1,6 +1,7 @@
 package it.nesea.albergo.hotel_service.service;
 
 import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
+import it.nesea.albergo.common_lib.dto.request.CheckDateStart;
 import it.nesea.albergo.common_lib.exception.NotFoundException;
 import it.nesea.albergo.hotel_service.dto.request.PrezzarioRequest;
 import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
@@ -8,6 +9,7 @@ import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
 import it.nesea.albergo.hotel_service.dto.response.TipoCameraDTO;
 import it.nesea.albergo.hotel_service.mapper.UtilMapper;
 import it.nesea.albergo.hotel_service.model.*;
+import it.nesea.albergo.hotel_service.model.repository.CameraRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +30,13 @@ public class UtilServiceImpl implements UtilService {
     private final EntityManager entityManager;
     private final UtilMapper utilMapper;
     private final CameraService cameraService;
+    private final CameraRepository cameraRepository;
 
-    public UtilServiceImpl(EntityManager entityManager, UtilMapper utilMapper, @Lazy CameraService cameraService) {
+    public UtilServiceImpl(EntityManager entityManager, UtilMapper utilMapper, @Lazy CameraService cameraService, CameraRepository cameraRepository) {
         this.entityManager = entityManager;
         this.utilMapper = utilMapper;
         this.cameraService = cameraService;
+        this.cameraRepository = cameraRepository;
     }
 
     @Override
@@ -104,6 +109,12 @@ public class UtilServiceImpl implements UtilService {
         }
 
         return prezziCamera;
+    }
+
+    @Override
+    public Boolean checkDataInizioDisponibilita(CheckDateStart request) {
+       Camera cameraRequest = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
+       return !request.getDataCheckIn().isBefore(cameraRequest.getDataInizioDisponibilita().atStartOfDay());
     }
 
 

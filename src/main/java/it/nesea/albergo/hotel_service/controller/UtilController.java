@@ -1,6 +1,7 @@
 package it.nesea.albergo.hotel_service.controller;
 
 import it.nesea.albergo.common_lib.dto.PrezzoCameraDTO;
+import it.nesea.albergo.common_lib.dto.request.CheckDateStart;
 import it.nesea.albergo.common_lib.dto.response.CustomResponse;
 import it.nesea.albergo.hotel_service.dto.response.FasciaEtaDTO;
 import it.nesea.albergo.hotel_service.dto.response.StatoCameraDTO;
@@ -39,6 +40,11 @@ public class UtilController {
     @PostMapping("/get-prezzi-camere")
     public ResponseEntity<CustomResponse<List<PrezzoCameraDTO>>> getPrezziCamere(@RequestBody List<Integer> listaEta) {
         return ResponseEntity.ok(CustomResponse.success(util.getListaPrezzario(listaEta)));
+    }
+
+    @PostMapping("/check-disponibilita")
+    public ResponseEntity<CustomResponse<Boolean>> checkDisponibilita(@RequestBody CheckDateStart request) {
+        return ResponseEntity.ok(CustomResponse.success(util.checkDataInizioDisponibilita(request)));
     }
 
 }
