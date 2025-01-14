@@ -114,7 +114,7 @@ public class UtilServiceImpl implements UtilService {
     public Boolean checkDataInizioDisponibilita(CheckDateStart request) {
         log.info("Richiesta ricevuta per verificare la data di inizio disponibilità per la camera {}", request.getNumeroCamera());
         Camera cameraRequest = cameraRepository.findByNumeroCamera(request.getNumeroCamera());
-        if (cameraRequest.getDataInizioDisponibilita() == null) {
+        if (cameraRequest == null) {
             log.error("Camera {} non trovata", request.getNumeroCamera());
             throw new NotFoundException("Camera non trovata");
         }
