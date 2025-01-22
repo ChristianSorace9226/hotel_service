@@ -10,7 +10,6 @@ import it.nesea.albergo.hotel_service.model.PrezzoCameraEntity;
 import it.nesea.albergo.hotel_service.model.StatoCameraEntity;
 import it.nesea.albergo.hotel_service.model.TipoCameraEntity;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface UtilService {
