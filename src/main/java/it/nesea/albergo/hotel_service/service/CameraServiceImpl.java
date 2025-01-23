@@ -193,14 +193,11 @@ public class CameraServiceImpl implements CameraService {
     public List<CameraDTO> getAllCamere() {
         log.info("Richiesta ricevuta per ottenere tutte le camere");
         List<Camera> camere = cameraRepository.findAll();
-        List<String> camerePrenotateOggi = prenotazioneExternalController.getCamerePrenotateOggi().getBody().getResponse();
-        log.info("Camere prenotate oggi: {}", camerePrenotateOggi);
-        List<CameraDTO> camereDisponibiliDto = camere.stream()
-                .filter(camera -> !camerePrenotateOggi.contains(camera.getNumeroCamera()))
-                .map(cameraMapper::toCameraDTOFromCameraEntity)
-                .toList();
-        log.info("Camere disponibili: {}", camereDisponibiliDto);
-        return camereDisponibiliDto;
+        List<CameraDTO> camereDto = new ArrayList<>();
+        for (Camera camera : camere ){
+            camereDto.add(cameraMapper.toCameraDTOFromCameraEntity(camera));
+        }
+        return camereDto;
     }
 
     @Override

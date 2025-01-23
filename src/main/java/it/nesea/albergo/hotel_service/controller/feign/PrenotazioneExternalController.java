@@ -10,6 +10,4 @@ import java.util.List;
 @FeignClient(name = "${external-call.name.prenotazione}", url = "${external-call.prenotazione.util.url}")
 public interface PrenotazioneExternalController {
 
-    @GetMapping("/get-camere-prenotate-oggi")
-    ResponseEntity<CustomResponse<List<String>>> getCamerePrenotateOggi();
 }
