@@ -132,7 +132,7 @@ public class CameraServiceImpl implements CameraService {
     @Override
     public OccupazioneDTO calcolaOccupazioneHotel() {
         List<Camera> camere = cameraRepository.findAll();
-        log.info("Richiesta ricevuta per il calcolo dell'occupazione del hotel: {}", camere);
+        log.info("Richiesta ricevuta per il calcolo dell'occupazione dell'hotel: [{}]", camere);
         List<Map<String, BigDecimal>> listaOccupazioneCamere = new ArrayList<>();
         int totaleCamere = camere.size();
         int camereOccupate = 0;
@@ -148,7 +148,6 @@ public class CameraServiceImpl implements CameraService {
             occupazioneCamera.put(camera.getNumeroCamera(), util.calcolaPercentuale(camera.getCapacita(), camera.getNumeroAlloggiati()).setScale(2, RoundingMode.HALF_UP));
             listaOccupazioneCamere.add(occupazioneCamera);
         }
-//        double percentualeOccupazione = calcolaPercentualeOccupazione(postiTotali, postiOccupatiTotali);
         BigDecimal percentualeOccupazione = util.calcolaPercentuale(totaleCamere, camereOccupate).setScale(2, RoundingMode.HALF_UP);
 
         OccupazioneDTO occupazioneDTO = new OccupazioneDTO();
