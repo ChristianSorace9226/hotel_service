@@ -194,7 +194,7 @@ public class CameraServiceImpl implements CameraService {
         log.info("Richiesta ricevuta per ottenere tutte le camere");
         List<Camera> camere = cameraRepository.findAll();
         List<CameraDTO> camereDto = new ArrayList<>();
-        for (Camera camera : camere ){
+        for (Camera camera : camere) {
             camereDto.add(cameraMapper.toCameraDTOFromCameraEntity(camera));
         }
         return camereDto;
